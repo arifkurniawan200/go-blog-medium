@@ -42,3 +42,27 @@ type TagRepository interface {
 	AddToPost(ctx context.Context, postID, tagID string) error
 	GetByPostID(ctx context.Context, postID string) ([]*entities.Tag, error)
 }
+
+type FollowRepository interface {
+	Follow(ctx context.Context, followerID, followingID string) error
+	Unfollow(ctx context.Context, followerID, followingID string) error
+	IsFollowing(ctx context.Context, followerID, followingID string) (bool, error)
+	GetFollowers(ctx context.Context, userID string, offset, limit int) ([]*entities.User, int64, error)
+	GetFollowing(ctx context.Context, userID string, offset, limit int) ([]*entities.User, int64, error)
+	CountFollowers(ctx context.Context, userID string) (int, error)
+	CountFollowing(ctx context.Context, userID string) (int, error)
+}
+
+type BookmarkRepository interface {
+	Create(ctx context.Context, bookmark *entities.Bookmark) error
+	Delete(ctx context.Context, userID, postID string) error
+	GetByUser(ctx context.Context, userID string, offset, limit int) ([]*entities.Post, int64, error)
+	IsBookmarked(ctx context.Context, userID, postID string) (bool, error)
+}
+
+type LikeRepository interface {
+	Create(ctx context.Context, like *entities.Like) error
+	Delete(ctx context.Context, userID, postID string) error
+	CountByPost(ctx context.Context, postID string) (int, error)
+	IsLiked(ctx context.Context, userID, postID string) (bool, error)
+}

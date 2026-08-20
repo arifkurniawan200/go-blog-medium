@@ -1,140 +1,154 @@
-# Go Modular Monolith Template
+# Medium-Like Blog API
 
-Go monolith dengan **Clean Architecture + SOLID principles**. Langsung bisa dipake untuk project baru.
+Go monolith Clean Architecture blog API — follower system, bookmarks, likes, tags, rich posts. SOLID principles throughout.
 
-## Struktur
+## Tech Stack
 
-```
-go-modular/
-├── cmd/server/              # Entry point
-├── internal/
-│   ├── domain/
-│   │   ├── entities/        # Domain models
-│   │   │   ├── user.go
-│   │   │   ├── post.go
-│   │   │   ├── comment.go
-│   │   │   └── tag.go
-│   │   └── repositories/     # Repository interfaces (abstractions)
-│   │       └── interfaces.go
-│   ├── application/
-│   │   ├── dto/             # Request/Response DTOs
-│   │   └── usecase/         # Business logic (depends on interfaces only)
-│   ├── infrastructure/
-│   │   ├── config/          # Configuration loading from env
-│   │   ├── handler/         # HTTP handlers (depends on use cases)
-│   │   ├── middleware/      # HTTP middleware (CORS, Logger, etc.)
-│   │   └── repository/      # Concrete implementations (MySQL, PostgreSQL, Mock)
-│   └── pkg/
-│       ├── response/        # Standardized API responses
-│       ├── pager/           # Pagination helper
-│       └── validator/       # Input validators
-├── migrations/              # SQL migrations
-└── README.md
-```
+- **Go 1.22** + Chi router v5
+- Clean Architecture (Domain → Application → Infrastructure → Presentation)
+- In-memory mock repositories (swap to PostgreSQL via repository interfaces)
+- SOLID principles: Dependency Inversion, Interface Segregation, etc.
 
-## SOLID Principles
-
-| Principle | Implementation |
-|-----------|----------------|
-| **S**ingle Responsibility | Setiap layer punya 1 job: domain=model, application=logic, infrastructure=external |
-| **O**pen/Closed | Repository baru (Redis, MongoDB) tinggal implement interface — use case tidak berubah |
-| **L**iskov Substitution | Semua implementasi repository bisa互换 (Mock, MySQL, PostgreSQL) tanpa ubah use case |
-| **I**nterface Segregation | interfaces.go pisah per domain (UserRepository, PostRepository) — kecil & fokus |
-| **D**ependency Inversion | Use case tergantung interface, bukan concrete repo — infrastructure di-inject |
-
-## Dependency Flow
+## Architecture
 
 ```
-HTTP Request
-    ↓
-Handler (infrastructure)       ← depends on → UseCase (application)
-    ↓                                                          ↑
-Repository (infrastructure)  ← implements ─ Repository Interface (domain)
-    ↓
-Database
+cmd/server/               # Entry point
+internal/
+├── domain/
+│   ├── entities/         # User, Post, Tag, Follow, Bookmark, Like, Clap
+│   └── repositories/     # Repository interfaces (abstractions)
+├── application/
+│   ├── dto/              # Request/Response DTOs
+│   └── usecase/          # Business logic (follow, post, interaction, bookmark)
+├── infrastructure/
+│   ├── handler/          # HTTP handlers
+│   ├── repository/       # Mock implementations (pluggable)
+│   └── config/
+pkg/
+├── response/             # Standardized JSON responses
+├── pager/                # Pagination
+└── validator/
+migrations/               # SQL schema
+```
+
+## API Endpoints
+
+### Users
+```
+POST   /api/v1/users                    Create user
+GET    /api/v1/users                    List users (paginated)
+GET    /api/v1/users/:id                Get user
+PUT    /api/v1/users/:id                Update user
+DELETE /api/v1/users/:id                Delete user
+POST   /api/v1/users/:id/follow         Follow user
+DELETE /api/v1/users/:id/follow         Unfollow user
+GET    /api/v1/users/:id/followers       Get followers (paginated)
+GET    /api/v1/users/:id/following       Get following (paginated)
+```
+
+### Posts
+```
+POST   /api/v1/posts                    Create post
+GET    /api/v1/posts                    List posts (filter: ?status=published)
+GET    /api/v1/posts/:id                Get post by ID
+GET    /api/v1/posts/slug/:slug         Get post by slug
+PUT    /api/v1/posts/:id                Update post
+DELETE /api/v1/posts/:id                Delete post
+
+POST   /api/v1/posts/:id/like          Like post
+DELETE /api/v1/posts/:id/like          Unlike post
+GET    /api/v1/posts/:id/likes          Get like count
+
+POST   /api/v1/posts/:id/bookmark       Bookmark post
+DELETE /api/v1/posts/:id/bookmark       Remove bookmark
+```
+
+### Me
+```
+GET    /api/v1/me/bookmarks             Get my bookmarks
+GET    /api/v1/me/following             Get who I follow
+```
+
+### Health
+```
+GET /health
+```
+
+## Authentication
+
+Pasang `X-User-ID` header untuk operasi yang butuh user identity:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/posts \
+  -H "Content-Type: application/json" \
+  -H "X-User-ID: user-123" \
+  -d '{"title":"My First Post","content":"Hello world!","tags":["golang","blog"]}'
 ```
 
 ## Setup
 
 ```bash
-git clone https://github.com/arifkurniawan200/go-modular-template.git my-project
-cd my-project
+# Clone
+git clone https://github.com/arifkurniawan200/go-blog-medium.git
+cd go-blog-medium
+
+# Tidy dependencies
 go mod tidy
+
+# Run (mock in-memory — no DB needed)
 go run cmd/server/main.go
 ```
 
 ## Setup dengan PostgreSQL
 
 ```bash
-# Buat database
+# Buat DB
 psql $DATABASE_URL -c "CREATE DATABASE blog;"
 
-# Jalankan migration
+# Migration
 psql $DATABASE_URL -f migrations/001_init.sql
 
 # Set env
-export DATABASE_URL=postgres://user:pass@localhost:5432/blog?sslmode=disable
-export SERVER_PORT=8080
-export JWT_SECRET=change-me
-
+export DATABASE_URL=postgres://user:***@localhost:5432/blog?sslmode=disable
 go run cmd/server/main.go
 ```
 
-## API Endpoints
+## Contoh Request
 
-```
-Users:
-  POST   /api/v1/users          → Create user
-  GET    /api/v1/users          → List users (pagination)
-  GET    /api/v1/users/:id      → Get user by ID
-  PUT    /api/v1/users/:id      → Update user
-  DELETE /api/v1/users/:id      → Delete user
+```bash
+# 1. Buat user
+curl -X POST http://localhost:8080/api/v1/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John","email":"john@example.com","password":"secret123"}'
 
-Posts:
-  POST   /api/v1/posts          → Create post
-  GET    /api/v1/posts          → List posts (filter by status)
-  GET    /api/v1/posts/:id      → Get post by ID
-  GET    /api/v1/posts/slug/:slug → Get post by slug
-  PUT    /api/v1/posts/:id      → Update post
-  DELETE /api/v1/posts/:id      → Delete post
+# 2. Buat post
+curl -X POST http://localhost:8080/api/v1/posts \
+  -H "Content-Type: application/json" \
+  -H "X-User-ID: <user-id>" \
+  -d '{"title":"Getting Started with Go","content":"Go is awesome...","tags":["golang"],"status":"published"}'
 
-Health:
-  GET /health
-```
+# 3. Like post
+curl -X POST http://localhost:8080/api/v1/posts/<post-id>/like \
+  -H "X-User-ID: <user-id>"
 
-## Contoh Response
+# 4. Bookmark post
+curl -X POST http://localhost:8080/api/v1/posts/<post-id>/bookmark \
+  -H "X-User-ID: <user-id>"
 
-```json
-// GET /api/v1/users
-{
-  "success": true,
-  "data": [
-    { "id": "user-xxxx", "email": "john@example.com", "name": "John", "role": "user" }
-  ],
-  "meta": {
-    "page": 1,
-    "limit": 20,
-    "total": 45,
-    "total_pages": 3
-  }
-}
+# 5. Follow author
+curl -X POST http://localhost:8080/api/v1/users/<author-id>/follow \
+  -H "X-User-ID: <user-id>"
+
+# 6. List published posts
+curl "http://localhost:8080/api/v1/posts?status=published&page=1&limit=10"
 ```
 
-## bikin Module Baru
+## SOLID di Project Ini
 
-1. Tambah entity di `internal/domain/entities/`
-2. Tambah interface di `internal/domain/repositories/interfaces.go`
-3. Tambah DTO di `internal/application/dto/`
-4. Tambah use case di `internal/application/usecase/`
-5. Tambah repository implementation di `internal/infrastructure/repository/`
-6. Tambah handler di `internal/infrastructure/handler/`
-7. Register route di `cmd/server/main.go`
-
-Tidak perlu ubah layer lain — SOLID compliance.
-
-## Tech Stack
-
-- Go 1.22+
-- Chi router v5
-- PostgreSQL + GORM (via repository pattern)
-- In-memory mock repositories (for testing/development)
+| Principle | How |
+|-----------|-----|
+| **S**ingle Responsibility | `FollowUseCase` hanya soal follow logic, tidak tahu HTTP |
+| **O**pen/Closed | Tambah repository baru (Redis, MongoDB) tanpa ubah use case |
+| **L**iskov Substitution | `MockFollowRepository` ↔ `*pgRepo.FollowRepository`互换 |
+| **I**nterface Segregation | `FollowRepository`, `BookmarkRepository` pisah — tidak 1 giant interface |
+| **D**ependency Inversion | `FollowUseCase` tergantung `repositories.FollowRepository` interface, bukan concrete type |
