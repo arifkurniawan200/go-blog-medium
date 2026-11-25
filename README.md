@@ -1,154 +1,45 @@
-# Medium-Like Blog API
+# Arif Kurniawan — 3D World Portfolio
 
-Go monolith Clean Architecture blog API — follower system, bookmarks, likes, tags, rich posts. SOLID principles throughout.
+Interactive single-page portfolio inspired by *Super Mario 3D World / Super Mario Odyssey* (bright 3D toon low-poly aesthetic with 100% original procedural Three.js models) designed for fast recruiter readability alongside playful game-like exploration.
 
 ## Tech Stack
+- **Vite + React + TypeScript**
+- **Three.js** via `@react-three/fiber` & `@react-three/drei` (100% procedural toon primitives — zero external `.glb` assets needed)
+- **GSAP + ScrollTrigger** (scroll-driven 3D camera & AK character track progression)
+- **Framer Motion** (snappy UI card pops, coin bursts, warp pipe transitions)
+- **Tailwind CSS** (game HUD & responsive WCAG AA layout)
+- **Web Audio API** (optional procedural retro SFX, muted by default)
 
-- **Go 1.22** + Chi router v5
-- Clean Architecture (Domain → Application → Infrastructure → Presentation)
-- In-memory mock repositories (swap to PostgreSQL via repository interfaces)
-- SOLID principles: Dependency Inversion, Interface Segregation, etc.
+## Features
+- **Original "AK" 3D Toon Character**: Low-poly red cap hero with `"AK"` emblem walking, running, and jumping along an elevated 3D grass/brick world.
+- **Interactive Game Elements**:
+  - `PRESS START` title intro with camera zoom-out from a green warp pipe
+  - 3 hittable `?` blocks in **World 1-1 (Services)** with coin bursts
+  - 10 spinning collectible coins in **World 1-2 (Skills & Tech Stack)** with tooltips & HUD counter
+  - 4 chronological career levels (**Level 1-1** to **Level 1-4 Final/Castle**) ending with finish flags
+  - **Goal Pole & Castle** contact finale
+  - **Keyboard Controls (Desktop)**: `← →` or `A D` to run, `Space` to jump
+  - **Easter Egg**: Enter the Konami Code (`↑ ↑ ↓ ↓ ← → ← → B A`) for **Star Power!**
+- **Accessibility & Performance**:
+  - All portfolio data rendered as real semantic HTML (SEO + screen readers + `<30s` recruiter scan via `"Skip Intro"` / `"Skip to Content"`)
+  - Automatic & manual **Classic 2D Mode** (zero WebGL) for low-end GPUs or `prefers-reduced-motion`
+  - Lazy-loaded 3D scene (`React.lazy` + code splitting) & mobile DPR/geometry reduction
 
-## Architecture
-
-```
-cmd/server/               # Entry point
-internal/
-├── domain/
-│   ├── entities/         # User, Post, Tag, Follow, Bookmark, Like, Clap
-│   └── repositories/     # Repository interfaces (abstractions)
-├── application/
-│   ├── dto/              # Request/Response DTOs
-│   └── usecase/          # Business logic (follow, post, interaction, bookmark)
-├── infrastructure/
-│   ├── handler/          # HTTP handlers
-│   ├── repository/       # Mock implementations (pluggable)
-│   └── config/
-pkg/
-├── response/             # Standardized JSON responses
-├── pager/                # Pagination
-└── validator/
-migrations/               # SQL schema
-```
-
-## API Endpoints
-
-### Users
-```
-POST   /api/v1/users                    Create user
-GET    /api/v1/users                    List users (paginated)
-GET    /api/v1/users/:id                Get user
-PUT    /api/v1/users/:id                Update user
-DELETE /api/v1/users/:id                Delete user
-POST   /api/v1/users/:id/follow         Follow user
-DELETE /api/v1/users/:id/follow         Unfollow user
-GET    /api/v1/users/:id/followers       Get followers (paginated)
-GET    /api/v1/users/:id/following       Get following (paginated)
-```
-
-### Posts
-```
-POST   /api/v1/posts                    Create post
-GET    /api/v1/posts                    List posts (filter: ?status=published)
-GET    /api/v1/posts/:id                Get post by ID
-GET    /api/v1/posts/slug/:slug         Get post by slug
-PUT    /api/v1/posts/:id                Update post
-DELETE /api/v1/posts/:id                Delete post
-
-POST   /api/v1/posts/:id/like          Like post
-DELETE /api/v1/posts/:id/like          Unlike post
-GET    /api/v1/posts/:id/likes          Get like count
-
-POST   /api/v1/posts/:id/bookmark       Bookmark post
-DELETE /api/v1/posts/:id/bookmark       Remove bookmark
-```
-
-### Me
-```
-GET    /api/v1/me/bookmarks             Get my bookmarks
-GET    /api/v1/me/following             Get who I follow
-```
-
-### Health
-```
-GET /health
-```
-
-## Authentication
-
-Pasang `X-User-ID` header untuk operasi yang butuh user identity:
+## Quick Start
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/posts \
-  -H "Content-Type: application/json" \
-  -H "X-User-ID: user-123" \
-  -d '{"title":"My First Post","content":"Hello world!","tags":["golang","blog"]}'
+npm install
+npm run dev
 ```
 
-## Setup
+## Production Build & Deploy
+Ready for **Vercel** (`vercel.json`) and **Netlify** (`netlify.toml`):
 
 ```bash
-# Clone
-git clone https://github.com/arifkurniawan200/go-blog-medium.git
-cd go-blog-medium
-
-# Tidy dependencies
-go mod tidy
-
-# Run (mock in-memory — no DB needed)
-go run cmd/server/main.go
+npm run build
+npm run preview
 ```
 
-## Setup dengan PostgreSQL
-
-```bash
-# Buat DB
-psql $DATABASE_URL -c "CREATE DATABASE blog;"
-
-# Migration
-psql $DATABASE_URL -f migrations/001_init.sql
-
-# Set env
-export DATABASE_URL=postgres://user:***@localhost:5432/blog?sslmode=disable
-go run cmd/server/main.go
-```
-
-## Contoh Request
-
-```bash
-# 1. Buat user
-curl -X POST http://localhost:8080/api/v1/users \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John","email":"john@example.com","password":"secret123"}'
-
-# 2. Buat post
-curl -X POST http://localhost:8080/api/v1/posts \
-  -H "Content-Type: application/json" \
-  -H "X-User-ID: <user-id>" \
-  -d '{"title":"Getting Started with Go","content":"Go is awesome...","tags":["golang"],"status":"published"}'
-
-# 3. Like post
-curl -X POST http://localhost:8080/api/v1/posts/<post-id>/like \
-  -H "X-User-ID: <user-id>"
-
-# 4. Bookmark post
-curl -X POST http://localhost:8080/api/v1/posts/<post-id>/bookmark \
-  -H "X-User-ID: <user-id>"
-
-# 5. Follow author
-curl -X POST http://localhost:8080/api/v1/users/<author-id>/follow \
-  -H "X-User-ID: <user-id>"
-
-# 6. List published posts
-curl "http://localhost:8080/api/v1/posts?status=published&page=1&limit=10"
-```
-
-## SOLID di Project Ini
-
-| Principle | How |
-|-----------|-----|
-| **S**ingle Responsibility | `FollowUseCase` hanya soal follow logic, tidak tahu HTTP |
-| **O**pen/Closed | Tambah repository baru (Redis, MongoDB) tanpa ubah use case |
-| **L**iskov Substitution | `MockFollowRepository` ↔ `*pgRepo.FollowRepository`互换 |
-| **I**nterface Segregation | `FollowRepository`, `BookmarkRepository` pisah — tidak 1 giant interface |
-| **D**ependency Inversion | `FollowUseCase` tergantung `repositories.FollowRepository` interface, bukan concrete type |
+## Easy Content Editing
+All portfolio copy, stats (including the `Projects Delivered` placeholder), services, skills, experience levels, and contact links live in:
+`src/data/portfolio.ts`
