@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arif Kurniawan — Backend Golang &amp; Microservices | 3D World Portfolio</title>
+  <meta name="description"
+    content="Arif Kurniawan — Backend Engineer specializing in Golang, Microservices, Kafka event-driven architecture, and Cloud-Native infrastructure." />
+  <meta name="theme-color" content="#5C94FC" />
+
+  <!-- Fonts: Pixel/Arcade for HUD & titles, clean Nunito/Inter for paragraphs -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@500;600;700;800;900&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            mario: {
+              sky: '#5C94FC',
+              skyDark: '#2E67D1',
+              red: '#E52521',
+              redDark: '#B81410',
+              coin: '#FBD000',
+              coinDark: '#C99700',
+              pipe: '#00A800',
+              pipeDark: '#007300',
+              brick: '#C84C0C',
+              brickDark: '#8F3104',
+              ink: '#1A1C2C'
+            }
+          },
+          fontFamily: {
+            pixel: ['"Press Start 2P"', '"Silkscreen"', 'monospace'],
+            arcade: ['"Silkscreen"', '"Press Start 2P"', 'monospace'],
+            sans: ['"Nunito"', '"Inter"', 'system-ui', 'sans-serif']
+          },
+          boxShadow: {
+            toon: '0 6px 0 #1A1C2C',
+            'toon-sm': '0 4px 0 #1A1C2C',
+            'toon-lg': '0 8px 0 #1A1C2C',
+            'toon-press': '0 2px 0 #1A1C2C'
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Three.js r128 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    section { scroll-margin-top: 136px; }
+    body {
+      margin: 0;
+      font-family: 'Nunito', 'Inter', system-ui, sans-serif;
+      background-color: #5C94FC;
+      color: #1A1C2C;
+      overflow-x: hidden;
+    }
+
+    :focus-visible {
+      outline: 3px solid #FBD000;
+      outline-offset: 3px;
+      border-radius: 8px;
+    }
+
+    .toon-panel {
+      background: rgba(255, 255, 255, 0.95);
+      border: 3px solid #1A1C2C;
+      border-radius: 1rem;
+      box-shadow: 0 6px 0 #1A1C2C;
+      backdrop-filter: blur(6px);
+    }
+
+    .toon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      min-height: 44px;
+      min-width: 44px;
+      padding: 0.6rem 1.2rem;
+      font-family: 'Silkscreen', 'Press Start 2P', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: 3px solid #1A1C2C;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 0 #1A1C2C;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.14s ease, box-shadow 0.14s ease, background-color 0.14s ease;
+    }
+
+    .toon-btn:hover { transform: translateY(-2px); }
+    .toon-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #1A1C2C; }
+
+    .toon-btn-red { background: #E52521; color: #FFFFFF; }
+    .toon-btn-red:hover { background: #F33531; }
+    .toon-btn-gold { background: #FBD000; color: #1A1C2C; }
+    .toon-btn-gold:hover { background: #FFE03D; }
+    .toon-btn-green { background: #00A800; color: #FFFFFF; }
+    .toon-btn-green:hover { background: #0DC20D; }
+    .toon-btn-white { background: #FFFFFF; color: #1A1C2C; }
+    .toon-btn-white:hover { background: #F8FAFC; }
+
+    .pixel-shadow { text-shadow: 3px 3px 0 #1A1C2C; }
+    .pixel-shadow-sm { text-shadow: 2px 2px 0 #1A1C2C; }
+
+    .brick-pattern {
+      background-color: #C84C0C;
+      background-image:
+        linear-gradient(90deg, rgba(26, 28, 44, 0.3) 2px, transparent 2px),
+        linear-gradient(rgba(26, 28, 44, 0.3) 2px, transparent 2px);
+      background-size: 36px 20px;
+    }
+
+    .pipe-sheen {
+      background: linear-gradient(90deg, #007300 0%, #00A800 18%, #5BE84F 34%, #00A800 58%, #007300 100%);
+    }
+
+    #world-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    #classic-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: linear-gradient(180deg, #5C94FC 0%, #80B0FF 65%, #A7D0FF 100%);
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      background: #5C94FC;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    #loading-screen.hidden-loader {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #warp-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateY(105%);
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+
+    #warp-overlay.active {
+      transform: translateY(0%);
+    }
+
+    @keyframes bounceY {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .anim-bounce { animation: bounceY 1.2s ease-in-out infinite; }
+
+    @keyframes qBump {
+      0% { transform: translateY(0) scale(1); }
+      40% { transform: translateY(-18px) scale(1.1); }
+      100% { transform: translateY(0) scale(1); }
+    }
+    .q-bumped { animation: qBump 0.32s cubic-bezier(0.22, 1, 0.36, 1); }
+
+    @keyframes popFloat {
+      0% { transform: translate(-50%, 0) scale(0.7); opacity: 1; }
+      60% { transform: translate(-50%, -46px) scale(1.25); opacity: 1; }
+      100% { transform: translate(-50%, -72px) scale(0.9); opacity: 0; }
+    }
+    .coin-burst {
+      position: absolute;
+      left: 50%;
+      top: -8px;
+      pointer-events: none;
+      animation: popFloat 0.65s ease-out forwards;
+      z-index: 20;
+    }
+
+    @keyframes rainbowBorder {
+      0% { box-shadow: 0 0 24px #E52521; }
+      25% { box-shadow: 0 0 28px #FBD000; }
+      50% { box-shadow: 0 0 28px #00A800; }
+      75% { box-shadow: 0 0 28px #5C94FC; }
+      100% { box-shadow: 0 0 24px #E52521; }
+    }
+    .star-power-hud { animation: rainbowBorder 0.8s linear infinite; }
+
+    #canvas-tooltip {
+      position: fixed;
+      z-index: 45;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, -125%) scale(0.92);
+      transition: opacity 0.16s ease, transform 0.16s ease;
+    }
+    #canvas-tooltip.show {
+      opacity: 1;
+      transform: translate(-50%, -138%) scale(1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .anim-bounce, .star-power-hud { animation: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Skip Link for Accessibility -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] toon-btn toon-btn-gold">
+    Skip to Content
+  </a>
+
+  <!-- ============================================================
+       LOADING SCREEN
+       ============================================================ -->
+  <div id="loading-screen" role="status" aria-live="polite">
+    <div class="w-24 h-24 rounded-full bg-mario-red border-4 border-mario-ink shadow-toon flex items-center justify-center mb-6 anim-bounce">
+      <span class="w-14 h-14 rounded-full bg-white border-[3px] border-mario-ink flex items-center justify-center font-pixel text-lg text-mario-red">
+        AK
+      </span>
+    </div>
+    <p class="font-pixel text-xs text-mario-coin pixel-shadow-sm tracking-widest mb-2">WORLD 1-1 LOADING</p>
+    <h1 class="font-pixel text-lg sm:text-2xl text-white pixel-shadow mb-6">ARIF KURNIAWAN</h1>
+    <div class="w-64 h-7 bg-mario-ink p-1 rounded-xl border-[3px] border-white shadow-toon-sm overflow-hidden">
+      <div id="loader-bar" class="h-full bg-mario-coin rounded-md transition-all duration-150" style="width: 15%;"></div>
+    </div>
+    <p id="loader-pct" class="font-arcade text-xs text-white pixel-shadow-sm mt-2">15% READY</p>
+    <button id="skip-loader-btn" type="button" class="toon-btn toon-btn-white mt-7 !text-xs">Skip Intro →</button>
+  </div>
+
+  <!-- ============================================================
+       WARP PIPE TRANSITION OVERLAY
+       ============================================================ -->
+  <div id="warp-overlay" class="pipe-sheen border-y-[6px] border-mario-ink" aria-hidden="true">
+    <div class="bg-mario-ink text-mario-coin border-4 border-white rounded-2xl px-6 py-4 shadow-toon-lg text-center">
+      <div class="font-pixel text-[10px] text-white tracking-widest mb-1.5">WARP PIPE TRANSIT</div>
+      <div id="warp-label" class="font-pixel text-sm sm:text-lg text-mario-coin">WORLD 1-1</div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       KONAMI CODE STAR POWER BANNER
+       ============================================================ -->
+  <div id="konami-banner"
+    class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[95] px-5 py-3 rounded-2xl bg-mario-ink text-mario-coin border-4 border-mario-coin shadow-toon-lg items-center gap-3 pointer-events-none">
+    <span class="font-pixel text-lg">★</span>
+    <div>
+      <div class="font-pixel text-xs text-mario-coin">STAR POWER ACTIVATED!</div>
+      <div class="font-arcade text-xs text-white mt-0.5">Super Speed + Invincible Mode (10s) · +1000 BONUS!</div>
+    </div>
+    <span class="font-pixel text-lg">★</span>
+  </div>
+
+  <!-- ============================================================
+       3D WEBGL CANVAS & CLASSIC 2D FALLBACK BACKDROP
+       ============================================================ -->
+  <div id="world-canvas" aria-hidden="true"></div>
+
+  <div id="classic-backdrop" class="hidden" aria-hidden="true">
+    <div class="absolute top-24 left-[8%] w-28 h-10 bg-white rounded-full border-[3px] border-mario-ink/20 opacity-90"></div>
+    <div class="absolute top-40 right-[12%] w-36 h-12 bg-white rounded-full border-[3px] border-mario-ink/20 opacity-85"></div>
+    <div class="absolute bottom-14 -left-16 w-80 h-56 rounded-t-full bg-[#22C55E] border-4 border-mario-ink/30"></div>
+    <div class="absolute bottom-14 left-1/3 w-96 h-64 rounded-t-full bg-[#16A34A] border-4 border-mario-ink/30"></div>
+    <div class="absolute bottom-14 -right-20 w-80 h-52 rounded-t-full bg-[#22C55E] border-4 border-mario-ink/30"></div>
+    <div class="absolute bottom-12 left-0 right-0 h-5 bg-mario-pipe border-y-[3px] border-mario-ink"></div>
+    <div class="absolute bottom-0 left-0 right-0 h-12 brick-pattern"></div>
+  </div>
+
+  <!-- Floating 3D Object Hover Tooltip -->
+  <div id="canvas-tooltip" class="px-3.5 py-2 bg-mario-ink text-white rounded-xl border-2 border-mario-coin shadow-toon-sm text-center">
+    <div id="canvas-tooltip-title" class="font-arcade text-xs text-mario-coin font-bold">Golang</div>
+    <div id="canvas-tooltip-sub" class="text-[11px] text-slate-200 font-semibold">Click to collect (+100)</div>
+  </div>
+
+  <!-- ============================================================
+       FIXED GAME HUD & ARCADE NAVIGATION BAR
+       ============================================================ -->
+  <header class="fixed top-0 left-0 right-0 z-50 px-3 sm:px-5 pt-2.5 pb-2 pointer-events-none">
+    <div class="max-w-7xl mx-auto flex flex-col gap-2">
+      <!-- Top Arcade HUD -->
+      <div id="hud-bar"
+        class="pointer-events-auto flex items-center justify-between gap-2 bg-mario-ink/95 text-white border-[3px] border-white rounded-2xl px-3 sm:px-5 py-2 shadow-toon backdrop-blur-md">
+        <!-- Top-Left: ARIF x 05 & SCORE -->
+        <button type="button" data-warp="hero"
+          class="flex items-center gap-2.5 text-left min-h-[44px] pr-1 cursor-pointer group"
+          aria-label="Back to Title Screen">
+          <span
+            class="w-9 h-9 rounded-full bg-mario-red border-2 border-white flex items-center justify-center font-pixel text-[10px] text-white shrink-0 group-hover:scale-110 transition-transform">
+            AK
+          </span>
+          <div class="leading-tight">
+            <div class="font-pixel text-[10px] sm:text-xs text-white">
+              ARIF <span class="text-mario-coin">x 05</span>
+            </div>
+            <div class="font-pixel text-[9px] sm:text-[10px] text-slate-300 mt-1">
+              SCORE <span id="hud-score">000000</span>
+            </div>
+          </div>
+        </button>
+
+        <!-- Top-Center: Active World -->
+        <div class="hidden md:flex flex-col items-center leading-tight">
+          <span class="font-pixel text-[9px] text-mario-coin tracking-widest">STAGE</span>
+          <span id="hud-world" class="font-pixel text-xs text-white mt-1">WORLD 1-0 · TITLE</span>
+        </div>
+
+        <!-- Top-Right: Coins + Classic Mode + Sound + Mobile Menu -->
+        <div class="flex items-center gap-1.5 sm:gap-2.5">
+          <div
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/10 border-2 border-mario-coin/75 font-pixel text-[10px] sm:text-xs"
+            title="Collected Tech Stack Coins">
+            <span
+              class="inline-flex w-4 h-4 rounded-full bg-mario-coin border-2 border-mario-ink text-mario-ink text-[8px] items-center justify-center font-bold">
+              $
+            </span>
+            <span class="text-mario-coin">
+              x <span id="hud-coins">00</span><span class="hidden sm:inline text-white/60">/10</span>
+            </span>
+          </div>
+
+          <button id="classic-toggle-btn" type="button"
+            class="min-h-[44px] min-w-[44px] px-2.5 rounded-xl border-2 border-white/40 bg-white/10 hover:bg-white/20 text-white font-arcade text-[10px] sm:text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+            title="Toggle Classic 2D Mode (No WebGL)">
+            <span aria-hidden="true">🖥️</span>
+            <span id="classic-toggle-label" class="hidden lg:inline">Classic 2D</span>
+          </button>
+
+          <button id="sound-toggle-btn" type="button"
+            class="min-h-[44px] min-w-[44px] px-2.5 rounded-xl border-2 border-white/40 bg-white/10 hover:bg-white/20 text-slate-200 font-arcade text-xs flex items-center justify-center cursor-pointer"
+            aria-label="Toggle Sound Effects" title="Sound OFF (click to enable)">
+            <span id="sound-icon">🔇</span>
+          </button>
+
+          <button id="mobile-menu-btn" type="button"
+            class="md:hidden min-h-[44px] min-w-[44px] rounded-xl bg-mario-red border-2 border-white flex items-center justify-center text-white font-bold text-lg cursor-pointer"
+            aria-expanded="false" aria-label="Toggle Game Menu">
+            ☰
+          </button>
+        </div>
+      </div>
+
+      <!-- Desktop Game Menu Bar -->
+      <nav aria-label="World Navigation"
+        class="hidden md:flex pointer-events-auto items-center justify-between gap-2 bg-white/95 border-[3px] border-mario-ink rounded-2xl px-3 py-1.5 shadow-toon-sm">
+        <div class="flex items-center gap-1.5">
+          <button type="button" data-warp="experience"
+            class="min-h-[44px] px-3.5 rounded-xl font-arcade text-xs font-bold text-mario-ink hover:bg-mario-coin/35 flex items-center gap-1.5 cursor-pointer">
+            <span class="w-2 h-2 rounded-full bg-mario-pipe"></span>Experience
+          </button>
+          <button type="button" data-warp="services"
+            class="min-h-[44px] px-3.5 rounded-xl font-arcade text-xs font-bold text-mario-ink hover:bg-mario-coin/35 flex items-center gap-1.5 cursor-pointer">
+            <span class="w-2 h-2 rounded-full bg-mario-pipe"></span>Services
+          </button>
+          <button type="button" data-warp="skills"
+            class="min-h-[44px] px-3.5 rounded-xl font-arcade text-xs font-bold text-mario-ink hover:bg-mario-coin/35 flex items-center gap-1.5 cursor-pointer">
+            <span class="w-2 h-2 rounded-full bg-mario-pipe"></span>Skills
+          </button>
+          <a href="https://arif-kurniawan.site/blog/" target="_blank" rel="noopener noreferrer"
+            class="min-h-[44px] px-3.5 rounded-xl font-arcade text-xs font-bold text-mario-ink hover:bg-mario-sky/20 flex items-center gap-1.5">
+            Blog ↗
+          </a>
+          <button type="button" data-warp="contact"
+            class="min-h-[44px] px-3.5 rounded-xl font-arcade text-xs font-bold text-mario-ink hover:bg-mario-coin/35 flex items-center gap-1.5 cursor-pointer">
+            <span class="w-2 h-2 rounded-full bg-mario-pipe"></span>Contact
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span id="hud-star-pill"
+            class="hidden px-3 py-1 rounded-full bg-mario-coin border-2 border-mario-ink font-pixel text-[9px] text-mario-ink animate-pulse">
+            ★ STAR POWER!
+          </span>
+          <button type="button" data-warp="contact" class="toon-btn toon-btn-red !py-2 !px-4 !text-xs">
+            ★ Hire Me
+          </button>
+        </div>
+      </nav>
+
+      <!-- Mobile Dropdown Menu -->
+      <nav id="mobile-menu" class="hidden md:hidden pointer-events-auto toon-panel p-3 flex-col gap-2">
+        <button type="button" data-warp="experience" class="min-h-[44px] px-3 rounded-xl font-arcade text-sm font-bold text-mario-ink hover:bg-mario-coin/30 flex justify-between items-center">
+          <span>Experience</span><span class="font-pixel text-[9px] text-mario-pipe">WARP →</span>
+        </button>
+        <button type="button" data-warp="services" class="min-h-[44px] px-3 rounded-xl font-arcade text-sm font-bold text-mario-ink hover:bg-mario-coin/30 flex justify-between items-center">
+          <span>Services</span><span class="font-pixel text-[9px] text-mario-pipe">WARP →</span>
+        </button>
+        <button type="button" data-warp="skills" class="min-h-[44px] px-3 rounded-xl font-arcade text-sm font-bold text-mario-ink hover:bg-mario-coin/30 flex justify-between items-center">
+          <span>Skills</span><span class="font-pixel text-[9px] text-mario-pipe">WARP →</span>
+        </button>
+        <a href="https://arif-kurniawan.site/blog/" target="_blank" rel="noopener noreferrer"
+          class="min-h-[44px] px-3 rounded-xl font-arcade text-sm font-bold text-mario-ink hover:bg-mario-coin/30 flex justify-between items-center">
+          <span>Blog</span><span>↗</span>
+        </a>
+        <button type="button" data-warp="contact" class="min-h-[44px] px-3 rounded-xl font-arcade text-sm font-bold text-mario-ink hover:bg-mario-coin/30 flex justify-between items-center">
+          <span>Contact</span><span class="font-pixel text-[9px] text-mario-pipe">WARP →</span>
+        </button>
+        <button type="button" data-warp="contact" class="toon-btn toon-btn-red w-full mt-1">★ Hire Me</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN REAL SEMANTIC HTML CONTENT
+       ============================================================ -->
+  <main id="main-content" class="relative z-10">
+
+    <!-- WORLD 1-0: HERO / TITLE SCREEN -->
+    <section id="hero" class="relative min-h-screen flex flex-col justify-center pt-32 sm:pt-36 pb-16 px-4 sm:px-6">
+      <div class="max-w-6xl mx-auto w-full">
+        <div class="grid lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-8 toon-panel p-6 sm:p-8 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-2.5 bg-mario-red border-b-2 border-mario-ink"></div>
+
+            <div class="flex flex-wrap items-center gap-2.5 mt-1 mb-4">
+              <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#DCFCE7] border-2 border-mario-ink font-arcade text-xs font-bold text-[#14532D]">
+                <span class="w-2.5 h-2.5 rounded-full bg-mario-pipe animate-pulse"></span>
+                Available for Work
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-mario-coin/35 border-2 border-mario-ink font-arcade text-xs font-bold text-mario-ink">
+                Backend Engineer
+              </span>
+            </div>
+
+            <p class="font-pixel text-xs sm:text-sm text-mario-red mb-2">PLAYER 1 · ARIF KURNIAWAN</p>
+
+            <h1 class="font-pixel text-2xl sm:text-4xl lg:text-[2.5rem] leading-[1.38] text-mario-ink mb-4">
+              Backend Golang &amp; Microservices
+            </h1>
+
+            <p class="text-base sm:text-lg text-slate-700 font-semibold leading-relaxed max-w-2xl mb-6">
+              I build scalable, high-performance backend systems with Golang, event-driven architectures, and
+              cloud-native infrastructure. 5+ years turning complex problems into clean, reliable code.
+            </p>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <button id="press-start-btn" type="button" class="toon-btn toon-btn-gold !px-6 !py-3 anim-bounce">
+                ▶ PRESS START
+              </button>
+              <button type="button" data-warp="experience" class="toon-btn toon-btn-red !px-5 !py-3">
+                📄 View Resume
+              </button>
+              <button type="button" data-warp="contact" class="toon-btn toon-btn-white !px-5 !py-3">
+                ✉️ Contact Me
+              </button>
+            </div>
+
+            <div class="mt-5 pt-4 border-t-2 border-dashed border-mario-ink/20 flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-600">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2 py-1 rounded bg-slate-100 border border-mario-ink/30 font-arcade text-[11px] text-mario-ink">SCROLL</span>
+                <span>to explore World</span>
+                <span class="hidden sm:inline text-slate-400">·</span>
+                <span class="hidden sm:inline px-2 py-1 rounded bg-slate-100 border border-mario-ink/30 font-arcade text-[11px] text-mario-ink">← → / SPACE</span>
+                <span class="hidden sm:inline">to run &amp; jump</span>
+              </div>
+              <button type="button" data-warp="experience"
+                class="text-mario-skyDark hover:underline font-arcade text-xs min-h-[44px] px-2 cursor-pointer">
+                Skip to Content ⏭
+              </button>
+            </div>
+          </div>
+
+          <div class="hidden lg:flex lg:col-span-4 flex-col items-end justify-end self-end pb-4 pointer-events-none">
+            <div class="toon-panel px-4 py-3 !bg-mario-ink/90 text-white !border-white max-w-[260px]">
+              <div class="font-pixel text-[10px] text-mario-coin mb-1.5">TIP · WORLD 1-0</div>
+              <p class="text-xs text-slate-200 leading-relaxed">
+                Hit <strong>? Blocks</strong> for Services, collect <strong>10 Coins</strong> in Skills, or enter the
+                <strong>Konami Code</strong> (↑↑↓↓←→←→BA) for Star Power!
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS SCOREBOARD -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4 mt-6" aria-label="Career Statistics">
+          <div class="toon-panel p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 rounded-md border-2 border-mario-ink font-pixel text-[9px] bg-mario-coin text-mario-ink">+STAT</span>
+              <span class="font-pixel text-xs text-mario-coinDark">★</span>
+            </div>
+            <div class="font-pixel text-2xl sm:text-3xl text-mario-ink"><span class="stat-num" data-target="5">0</span>+</div>
+            <div class="font-arcade text-xs sm:text-sm font-bold text-slate-700 mt-1.5">Years Experience</div>
+          </div>
+
+          <div class="toon-panel p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 rounded-md border-2 border-mario-ink font-pixel text-[9px] bg-mario-red text-white">+STAT</span>
+              <span class="font-pixel text-xs text-mario-coinDark">★</span>
+            </div>
+            <div class="font-pixel text-2xl sm:text-3xl text-mario-ink"><span class="stat-num" data-target="4">0</span></div>
+            <div class="font-arcade text-xs sm:text-sm font-bold text-slate-700 mt-1.5">Companies Served</div>
+          </div>
+
+          <div class="toon-panel p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 rounded-md border-2 border-mario-ink font-pixel text-[9px] bg-mario-pipe text-white">+STAT</span>
+              <span class="font-pixel text-xs text-mario-coinDark">★</span>
+            </div>
+            <div class="font-pixel text-2xl sm:text-3xl text-mario-ink"><span class="stat-num" data-target="3">0</span></div>
+            <div class="font-arcade text-xs sm:text-sm font-bold text-slate-700 mt-1.5">Tech Migrations</div>
+          </div>
+
+          <div class="toon-panel p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 rounded-md border-2 border-mario-ink font-pixel text-[9px] bg-mario-skyDark text-white">+STAT</span>
+              <span class="font-pixel text-xs text-mario-coinDark">★</span>
+            </div>
+            <!-- Easy-to-edit placeholder -->
+            <div class="font-pixel text-2xl sm:text-3xl text-mario-ink"><span class="stat-num" data-target="20">0</span>+</div>
+            <div class="font-arcade text-xs sm:text-sm font-bold text-slate-700 mt-1.5">Projects Delivered</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORLD 1-1: SERVICES (? BLOCKS) -->
+    <section id="services" class="relative py-20 sm:py-28 px-4 sm:px-6" aria-labelledby="services-title">
+      <div class="max-w-6xl mx-auto">
+        <div class="toon-panel p-5 sm:p-6 mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="inline-block px-3 py-1 rounded-lg bg-mario-coin border-2 border-mario-ink font-pixel text-[10px] text-mario-ink mb-2">
+              WORLD 1-1 · POWER-UP BLOCKS
+            </span>
+            <h2 id="services-title" class="font-pixel text-xl sm:text-3xl text-mario-ink">Services</h2>
+            <p class="text-sm sm:text-base text-slate-700 font-semibold mt-1">
+              Hit the <strong>?</strong> blocks to unleash each backend power-up!
+            </p>
+          </div>
+          <button id="unlock-all-services" type="button" class="toon-btn toon-btn-gold !text-xs">
+            ✨ Unlock All 3 Blocks
+          </button>
+        </div>
+
+        <div id="services-grid" class="grid md:grid-cols-3 gap-6"></div>
+      </div>
+    </section>
+
+    <!-- WORLD 1-2: SKILLS & TECH STACK (COLLECTIBLE COINS) -->
+    <section id="skills" class="relative py-20 sm:py-28 px-4 sm:px-6" aria-labelledby="skills-title">
+      <div class="max-w-6xl mx-auto">
+        <!-- Pipe connector -->
+        <div class="flex justify-center mb-6" aria-hidden="true">
+          <div class="w-20 h-10 pipe-sheen border-[3px] border-mario-ink rounded-t-lg shadow-toon-sm relative">
+            <div class="absolute -top-3 -left-2 -right-2 h-5 pipe-sheen border-[3px] border-mario-ink rounded-md"></div>
+          </div>
+        </div>
+
+        <div class="toon-panel p-5 sm:p-6 mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="inline-block px-3 py-1 rounded-lg bg-mario-pipe border-2 border-mario-ink font-pixel text-[10px] text-white mb-2">
+              WORLD 1-2 · COIN VAULT
+            </span>
+            <h2 id="skills-title" class="font-pixel text-xl sm:text-3xl text-mario-ink">Skills &amp; Tech Stack</h2>
+            <p class="text-sm sm:text-base text-slate-700 font-semibold mt-1">
+              Hover or tap each collectible coin to inspect &amp; collect (<span id="skills-collected-text">0/10</span> collected)
+            </p>
+          </div>
+          <button id="collect-all-skills" type="button" class="toon-btn toon-btn-gold !text-xs">
+            🪙 Collect All Coins
+          </button>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-6 items-start">
+          <div id="skills-grid" class="lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5"></div>
+
+          <aside id="skill-inspector" class="lg:col-span-4 toon-panel p-6 relative overflow-hidden">
+            <div id="inspector-bar" class="absolute top-0 left-0 right-0 h-2.5 border-b-2 border-mario-ink bg-[#00ADD8]"></div>
+            <div class="mt-1 flex items-center justify-between mb-3">
+              <span class="font-pixel text-[9px] px-2.5 py-1 rounded bg-mario-ink text-mario-coin">COIN INSPECTOR</span>
+              <span id="inspector-cat" class="font-arcade text-xs font-bold text-slate-600">Language</span>
+            </div>
+            <div class="flex items-center gap-3 mb-3">
+              <span id="inspector-code"
+                class="w-12 h-12 rounded-full border-[3px] border-mario-ink bg-mario-coin flex items-center justify-center font-pixel text-xs text-mario-ink shrink-0">
+                GO
+              </span>
+              <h3 id="inspector-name" class="font-pixel text-lg text-mario-ink">Golang</h3>
+            </div>
+            <p id="inspector-desc" class="text-sm sm:text-base text-slate-700 font-semibold leading-relaxed">
+              High-concurrency backend services &amp; legacy migrations
+            </p>
+            <div class="mt-5 pt-4 border-t-2 border-dashed border-mario-ink/20 text-xs font-bold text-slate-600">
+              Status: <strong id="inspector-status" class="text-mario-brick">Tap coin to collect</strong>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORLD 1-3: WORK EXPERIENCE (4 LEVELS) -->
+    <section id="experience" class="relative py-20 sm:py-28 px-4 sm:px-6" aria-labelledby="exp-title">
+      <div class="max-w-6xl mx-auto">
+        <div class="toon-panel p-5 sm:p-6 mb-10 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="inline-block px-3 py-1 rounded-lg bg-mario-red border-2 border-mario-ink font-pixel text-[10px] text-white mb-2">
+              WORLD 1-3 · CAREER CAMPAIGN
+            </span>
+            <h2 id="exp-title" class="font-pixel text-xl sm:text-3xl text-mario-ink">Work Experience</h2>
+            <p class="text-sm sm:text-base text-slate-700 font-semibold mt-1">
+              4 Levels cleared from Level 1-1 to the Final Castle!
+            </p>
+          </div>
+          <div class="px-3.5 py-2 rounded-xl bg-mario-coin/35 border-2 border-mario-ink font-arcade text-xs font-bold text-mario-ink">
+            LEVEL 1-1 → LEVEL 1-4 (FINAL)
+          </div>
+        </div>
+
+        <div class="relative space-y-8">
+          <div class="hidden md:block absolute left-8 top-8 bottom-8 w-2 rounded-full bg-mario-coin border-2 border-mario-ink" aria-hidden="true"></div>
+          <div id="experience-list" class="space-y-8"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORLD 1-4: CONTACT (GOAL POLE & FINAL CASTLE) -->
+    <section id="contact" class="relative pt-20 sm:pt-28 pb-16 px-4 sm:px-6" aria-labelledby="contact-title">
+      <div class="max-w-5xl mx-auto">
+        <div class="toon-panel p-6 sm:p-10 relative overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-3 brick-pattern border-b-[3px] border-mario-ink"></div>
+
+          <div class="text-center max-w-2xl mx-auto mt-2 mb-8">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-mario-coin border-[3px] border-mario-ink font-pixel text-[10px] text-mario-ink shadow-toon-sm mb-4">
+              <span>🚩 WORLD 1-4 · GOAL POLE &amp; FINAL CASTLE 🏰</span>
+            </div>
+            <h2 id="contact-title" class="font-pixel text-2xl sm:text-4xl text-mario-ink leading-snug mb-3">
+              Let's Work Together
+            </h2>
+            <p class="text-base sm:text-lg text-slate-700 font-semibold leading-relaxed">
+              Available for freelance projects, full-time roles, or consulting. Jakarta-based, remote-friendly.
+            </p>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <a href="https://linkedin.com/in/arifkurniawan200" target="_blank" rel="noopener noreferrer"
+              class="contact-card bg-slate-50 border-[3px] border-mario-ink rounded-2xl p-4 shadow-toon-sm hover:-translate-y-1 transition-transform flex items-center gap-3.5 min-h-[72px]">
+              <span class="w-12 h-12 rounded-xl border-[3px] border-mario-ink bg-[#0A66C2] text-white flex items-center justify-center font-arcade font-bold text-lg shrink-0">in</span>
+              <div class="min-w-0">
+                <div class="font-arcade text-base font-bold text-mario-ink">LinkedIn</div>
+                <div class="text-xs sm:text-sm font-bold text-slate-600 truncate">linkedin.com/in/arifkurniawan200</div>
+              </div>
+            </a>
+
+            <a href="https://github.com/arifkurniawan200" target="_blank" rel="noopener noreferrer"
+              class="contact-card bg-slate-50 border-[3px] border-mario-ink rounded-2xl p-4 shadow-toon-sm hover:-translate-y-1 transition-transform flex items-center gap-3.5 min-h-[72px]">
+              <span class="w-12 h-12 rounded-xl border-[3px] border-mario-ink bg-mario-ink text-white flex items-center justify-center font-arcade font-bold text-lg shrink-0">GH</span>
+              <div class="min-w-0">
+                <div class="font-arcade text-base font-bold text-mario-ink">GitHub</div>
+                <div class="text-xs sm:text-sm font-bold text-slate-600 truncate">github.com/arifkurniawan200</div>
+              </div>
+            </a>
+
+            <div class="bg-slate-50 border-[3px] border-mario-ink rounded-2xl p-4 shadow-toon-sm hover:-translate-y-1 transition-transform flex items-center justify-between gap-3 min-h-[72px]">
+              <a href="mailto:Arifkurniawan98@outlook.com" class="contact-card flex items-center gap-3.5 min-w-0 flex-1">
+                <span class="w-12 h-12 rounded-xl border-[3px] border-mario-ink bg-mario-red text-white flex items-center justify-center font-arcade font-bold text-lg shrink-0">@</span>
+                <div class="min-w-0">
+                  <div class="font-arcade text-base font-bold text-mario-ink">Email</div>
+                  <div class="text-xs sm:text-sm font-bold text-slate-600 truncate">Arifkurniawan98@outlook.com</div>
+                </div>
+              </a>
+              <button id="copy-email-btn" type="button" class="toon-btn toon-btn-gold !px-3 !py-2 !text-xs shrink-0">
+                Copy
+              </button>
+            </div>
+
+            <a href="https://wa.me/6288806897532" target="_blank" rel="noopener noreferrer"
+              class="contact-card bg-slate-50 border-[3px] border-mario-ink rounded-2xl p-4 shadow-toon-sm hover:-translate-y-1 transition-transform flex items-center gap-3.5 min-h-[72px]">
+              <span class="w-12 h-12 rounded-xl border-[3px] border-mario-ink bg-mario-pipe text-white flex items-center justify-center font-arcade font-bold text-lg shrink-0">WA</span>
+              <div class="min-w-0">
+                <div class="font-arcade text-base font-bold text-mario-ink">WhatsApp</div>
+                <div class="text-xs sm:text-sm font-bold text-slate-600 truncate">wa.me/6288806897532</div>
+              </div>
+            </a>
+          </div>
+
+          <footer class="mt-10 pt-6 border-t-2 border-dashed border-mario-ink/20 text-center">
+            <p class="font-arcade text-xs sm:text-sm font-bold text-slate-700">
+              © 2026 Arif Kurniawan. Built with ♥ in Jakarta.
+            </p>
+            <p class="font-pixel text-[9px] text-slate-500 mt-2">
+              THANK YOU FOR PLAYING! TRY ↑↑↓↓←→←→BA FOR STAR POWER ★
+            </p>
+          </footer>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ==========================================================
+         1. EXACT PORTFOLIO DATA
+         ========================================================== */
+      const SERVICES = [
+        {
+          id: 'backend',
+          title: 'Backend Development',
+          powerUp: 'Super Go Shroom',
+          icon: '🍄',
+          accent: '#E52521',
+          description: 'Golang, REST & gRPC APIs, Kafka event-driven systems, Clean Architecture, dibangun untuk scale dari startup sampai enterprise.',
+          tags: ['Golang', 'REST & gRPC', 'Kafka', 'Clean Architecture']
+        },
+        {
+          id: 'cloud',
+          title: 'Cloud Infrastructure',
+          powerUp: 'Cloud Pipe Boost',
+          icon: '☁️',
+          accent: '#00A800',
+          description: 'GCP (Spanner, Compute Engine), Docker, Kubernetes, distributed systems dengan strong consistency dan deployment andal.',
+          tags: ['GCP Spanner', 'Compute Engine', 'Docker', 'Kubernetes']
+        },
+        {
+          id: 'architecture',
+          title: 'System Architecture',
+          powerUp: 'Super Star Blueprint',
+          icon: '⭐',
+          accent: '#FBD000',
+          description: 'Legacy-to-modern migration, microservice decomposition, RBAC design, observability dengan OpenTelemetry & Datadog.',
+          tags: ['Legacy Migration', 'Microservices', 'RBAC', 'OpenTelemetry & Datadog']
+        }
+      ];
+
+      const SKILLS = [
+        { id: 'golang', name: 'Golang', category: 'Language', code: 'GO', color: '#00ADD8', tooltip: 'High-concurrency backend services & legacy migrations' },
+        { id: 'postgresql', name: 'PostgreSQL', category: 'Database', code: 'PG', color: '#336791', tooltip: 'Relational modeling, indexing & financial transactions' },
+        { id: 'kafka', name: 'Kafka', category: 'Streaming', code: 'KF', color: '#E52521', tooltip: 'Event-driven messaging & resilient high-throughput pipelines' },
+        { id: 'gcp', name: 'GCP', category: 'Cloud', code: 'GCP', color: '#4285F4', tooltip: 'Google Cloud Spanner, Compute Engine & cloud-native ops' },
+        { id: 'redis', name: 'Redis', category: 'Cache', code: 'RD', color: '#DC382D', tooltip: 'Ultra-low-latency caching, locks & rate limiting' },
+        { id: 'docker', name: 'Docker', category: 'Containers', code: 'DK', color: '#2496ED', tooltip: 'Multi-stage Go images & reproducible builds' },
+        { id: 'grpc', name: 'gRPC', category: 'RPC', code: 'RPC', color: '#00A800', tooltip: 'Fast Protocol Buffers inter-service communication' },
+        { id: 'kubernetes', name: 'Kubernetes', category: 'Orchestration', code: 'K8S', color: '#326CE5', tooltip: 'Scalable workload orchestration & zero-downtime rollouts' },
+        { id: 'mysql', name: 'MySQL', category: 'Database', code: 'SQL', color: '#F29111', tooltip: 'Production database management & query security hardening' },
+        { id: 'linux', name: 'Linux', category: 'Infra', code: 'LNX', color: '#C84C0C', tooltip: 'Server operations, profiling & production troubleshooting' }
+      ];
+
+      const LEVELS = [
+        {
+          id: 'level-1-1',
+          code: 'Level 1-1',
+          short: '1-1',
+          role: 'Junior Software Engineer',
+          company: 'KoinWorks',
+          period: 'Jan 2022 – Jan 2023',
+          color: '#00A800',
+          highlights: [
+            'Developed and maintained investment products with high performance and reliability',
+            'Built experience in microservice architecture and inter-service communication',
+            'Integrated third-party platforms including CleverTap and SaaS core banking system',
+            'Collaborated cross-functional teams to deliver high-quality technical solutions'
+          ]
+        },
+        {
+          id: 'level-1-2',
+          code: 'Level 1-2',
+          short: '1-2',
+          role: 'Software Engineer',
+          company: 'PrivyID',
+          period: 'Jan 2023 – Aug 2023',
+          color: '#5C94FC',
+          highlights: [
+            'Migrated legacy Ruby on Rails system to Golang, improving performance and scalability',
+            'Built secure backend features for banking clients (mortgage services)',
+            'Designed and implemented RBAC management system in Golang',
+            'Built asset management services streamlining operational efficiency'
+          ]
+        },
+        {
+          id: 'level-1-3',
+          code: 'Level 1-3',
+          short: '1-3',
+          role: 'Software Engineer',
+          company: 'KB Finansia Multi Finance',
+          period: 'Oct 2023 – May 2024',
+          color: '#C84C0C',
+          highlights: [
+            'Eliminated SQL injection vulnerabilities and resolved critical technical debt',
+            'Implemented async workflows improving system performance and resource utilization',
+            'Led development of a critical business-used car platform ensuring high stability & scalability',
+            'Rewrote services using Clean Architecture, improving maintainability and code quality'
+          ]
+        },
+        {
+          id: 'level-1-4',
+          code: 'Level 1-4 (Final/Castle)',
+          short: '🏰',
+          isCastle: true,
+          role: 'Software Backend Engineer',
+          company: 'Indodax',
+          period: 'May 2024 – Present',
+          color: '#E52521',
+          highlights: [
+            'Re-architected legacy systems into Kafka-based event-driven architecture for critical exchange features',
+            'Built scalable backend services in Golang (migrating from PHP)',
+            'Implemented distributed databases (Google Spanner) and Redis for ultra-low-latency data access',
+            'Enhanced Kafka messaging reliability and integrated OpenTelemetry for centralized monitoring'
+          ]
+        }
+      ];
+
+      const WORLD_LABELS = {
+        hero: 'WORLD 1-0 · TITLE',
+        services: 'WORLD 1-1 · SERVICES',
+        skills: 'WORLD 1-2 · SKILLS',
+        experience: 'WORLD 1-3 · LEVELS',
+        contact: 'WORLD 1-4 · CASTLE'
+      };
+
+      /* ==========================================================
+         2. RETRO WEB AUDIO SFX (DEFAULT OFF)
+         ========================================================== */
+      const Sound = {
+        enabled: false,
+        ctx: null,
+        tone(freq, dur, type = 'square', vol = 0.05, delay = 0, endFreq = null) {
+          if (!this.enabled) return;
+          try {
+            if (!this.ctx) {
+              const AC = window.AudioContext || window.webkitAudioContext;
+              if (AC) this.ctx = new AC();
+            }
+            if (!this.ctx) return;
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            const t = this.ctx.currentTime + delay;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, t);
+            if (endFreq) osc.frequency.exponentialRampToValueAtTime(endFreq, t + dur);
+            gain.gain.setValueAtTime(vol, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t);
+            osc.stop(t + dur);
+          } catch (e) {}
+        },
+        coin() {
+          this.tone(987.77, 0.08, 'square', 0.05, 0);
+          this.tone(1318.51, 0.22, 'square', 0.05, 0.075);
+        },
+        jump() {
+          this.tone(260, 0.16, 'triangle', 0.09, 0, 620);
+        },
+        block() {
+          this.tone(320, 0.06, 'square', 0.06, 0, 480);
+          this.tone(523.25, 0.07, 'square', 0.05, 0.06);
+          this.tone(659.25, 0.07, 'square', 0.05, 0.12);
+          this.tone(783.99, 0.14, 'square', 0.05, 0.18);
+        },
+        warp() {
+          this.tone(420, 0.09, 'sawtooth', 0.045, 0, 140);
+          this.tone(360, 0.09, 'sawtooth', 0.045, 0.09, 110);
+          this.tone(300, 0.12, 'sawtooth', 0.045, 0.18, 90);
+        },
+        start() {
+          [523.25, 659.25, 783.99, 1046.5].forEach((n, i) =>
+            this.tone(n, i === 3 ? 0.25 : 0.08, 'triangle', 0.07, i * 0.075)
+          );
+        },
+        star() {
+          [587.33, 659.25, 783.99, 987.77, 1174.66, 987.77, 1318.51].forEach((n, i) =>
+            this.tone(n, 0.09, 'square', 0.05, i * 0.065)
+          );
+        }
+      };
+
+      /* ==========================================================
+         3. STATE & PERFORMANCE AUTO-DETECTION
+         ========================================================== */
+      const urlParams = new URLSearchParams(window.location.search);
+      const isMobile = window.matchMedia('(max-width: 768px)').matches;
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const hasWebGL = (() => {
+        try {
+          const c = document.createElement('canvas');
+          return Boolean(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl')));
+        } catch (e) { return false; }
+      })();
+      const lowEnd = (navigator.hardwareConcurrency || 4) <= 2 || (navigator.deviceMemory || 4) <= 2;
+
+      const state = {
+        classicMode: urlParams.get('classic') === '1' || !hasWebGL || prefersReducedMotion || lowEnd,
+        gameStarted: false,
+        starPower: false,
+        bonusScore: 0,
+        scrollScore: 0,
+        scrollProgress: 0,
+        hitServices: {},
+        collectedSkills: {},
+        activeSkill: SKILLS[0],
+        keys: { left: false, right: false }
+      };
+
+      function updateHUD() {
+        const total = Math.min(999999, state.scrollScore + state.bonusScore);
+        document.getElementById('hud-score').textContent = String(total).padStart(6, '0');
+        const coins = Object.keys(state.collectedSkills).length;
+        document.getElementById('hud-coins').textContent = String(coins).padStart(2, '0');
+        const colText = document.getElementById('skills-collected-text');
+        if (colText) colText.textContent = `${coins}/${SKILLS.length}`;
+      }
+
+      /* ==========================================================
+         4. RENDER SEMANTIC HTML SECTIONS
+         ========================================================== */
+      function renderServices() {
+        const grid = document.getElementById('services-grid');
+        grid.innerHTML = SERVICES.map((svc, idx) => {
+          const hit = Boolean(state.hitServices[svc.id]);
+          return `
+            <div class="flex flex-col items-center">
+              <div class="relative mb-4" id="qwrap-${svc.id}">
+                <button type="button" data-service-hit="${svc.id}"
+                  class="q-block-btn w-24 h-24 rounded-2xl border-4 border-mario-ink shadow-toon flex flex-col items-center justify-center relative cursor-pointer transition-colors ${hit ? 'bg-mario-brick text-mario-coin' : 'bg-mario-coin text-white hover:bg-[#FFE03D]'}"
+                  aria-expanded="${hit}">
+                  <span class="absolute top-2 left-2 w-2 h-2 rounded-full bg-mario-ink"></span>
+                  <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-mario-ink"></span>
+                  <span class="absolute bottom-2 left-2 w-2 h-2 rounded-full bg-mario-ink"></span>
+                  <span class="absolute bottom-2 right-2 w-2 h-2 rounded-full bg-mario-ink"></span>
+                  <span class="font-pixel text-3xl pixel-shadow">${hit ? '★' : '?'}</span>
+                  <span class="font-arcade text-[10px] font-bold mt-1 text-mario-ink bg-white/95 px-2 py-0.5 rounded border border-mario-ink">${hit ? 'HIT!' : 'HIT #' + (idx + 1)}</span>
+                </button>
+              </div>
+              <article class="w-full flex-1 toon-panel p-6 flex flex-col justify-between relative overflow-hidden transition-all ${hit ? 'ring-4 ring-mario-coin scale-100' : 'scale-[0.97] opacity-95'}">
+                <div class="absolute top-0 left-0 right-0 h-2.5 border-b-2 border-mario-ink" style="background:${svc.accent};"></div>
+                <div>
+                  <div class="flex items-center justify-between gap-2 mt-1 mb-3">
+                    <span class="w-11 h-11 rounded-xl border-[3px] border-mario-ink flex items-center justify-center text-xl shadow-toon-sm" style="background:${svc.accent};">${svc.icon}</span>
+                    <span class="font-pixel text-[9px] px-2.5 py-1 rounded-lg bg-slate-100 border-2 border-mario-ink text-mario-ink">${svc.powerUp}</span>
+                  </div>
+                  <h3 class="font-arcade text-lg font-bold text-mario-ink mb-2">${svc.title}</h3>
+                  <p class="text-sm sm:text-base text-slate-700 font-semibold leading-relaxed">${svc.description}</p>
+                </div>
+                <div class="mt-5 pt-4 border-t-2 border-dashed border-mario-ink/20 flex flex-wrap gap-1.5">
+                  ${svc.tags.map((t) => `<span class="px-2.5 py-1 rounded-lg bg-mario-sky/15 border-2 border-mario-ink/25 font-arcade text-[11px] font-bold text-mario-ink">${t}</span>`).join('')}
+                </div>
+              </article>
+            </div>
+          `;
+        }).join('');
+
+        grid.querySelectorAll('[data-service-hit]').forEach((btn) => {
+          btn.addEventListener('click', () => triggerServiceHit(btn.dataset.serviceHit));
+        });
+      }
+
+      function triggerServiceHit(serviceId) {
+        Sound.block();
+        if (!state.hitServices[serviceId]) {
+          state.hitServices[serviceId] = true;
+          state.bonusScore += 100;
+          updateHUD();
+        }
+        renderServices();
+        const wrap = document.getElementById('qwrap-' + serviceId);
+        if (wrap) {
+          const btn = wrap.querySelector('.q-block-btn');
+          if (btn) btn.classList.add('q-bumped');
+          const pop = document.createElement('div');
+          pop.className = 'coin-burst font-pixel text-xs text-mario-coin pixel-shadow-sm';
+          pop.textContent = '+100';
+          wrap.appendChild(pop);
+          setTimeout(() => pop.remove(), 680);
+        }
+        sync3DBlocksAndCoins();
+      }
+
+      function renderSkills() {
+        const grid = document.getElementById('skills-grid');
+        grid.innerHTML = SKILLS.map((sk) => {
+          const col = Boolean(state.collectedSkills[sk.id]);
+          const active = state.activeSkill.id === sk.id;
+          return `
+            <button type="button" data-skill-id="${sk.id}"
+              class="toon-panel p-3.5 flex flex-col items-center text-center relative cursor-pointer transition-all hover:-translate-y-1.5 min-h-[124px] justify-between ${active ? 'ring-4 ring-mario-coin' : ''}">
+              ${col ? '<span class="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full bg-mario-pipe text-white border-[2.5px] border-mario-ink flex items-center justify-center text-xs font-bold shadow-toon-sm">✓</span>' : ''}
+              <div class="w-14 h-14 rounded-full border-[3px] border-mario-ink flex items-center justify-center font-pixel text-xs shadow-toon-sm ${col ? 'bg-mario-coin' : 'bg-[#FFE14D]'} text-mario-ink">${sk.code}</div>
+              <div class="mt-2">
+                <div class="font-arcade text-xs sm:text-sm font-bold text-mario-ink">${sk.name}</div>
+                <div class="text-[11px] font-bold text-slate-500">${sk.category}</div>
+              </div>
+            </button>
+          `;
+        }).join('');
+
+        grid.querySelectorAll('[data-skill-id]').forEach((btn) => {
+          const sk = SKILLS.find((s) => s.id === btn.dataset.skillId);
+          btn.addEventListener('mouseenter', () => inspectSkill(sk));
+          btn.addEventListener('focus', () => inspectSkill(sk));
+          btn.addEventListener('click', () => {
+            inspectSkill(sk);
+            collectSkill(sk.id);
+          });
+        });
+        inspectSkill(state.activeSkill);
+      }
+
+      function inspectSkill(sk) {
+        state.activeSkill = sk;
+        document.getElementById('inspector-bar').style.background = sk.color;
+        document.getElementById('inspector-cat').textContent = sk.category;
+        document.getElementById('inspector-code').textContent = sk.code;
+        document.getElementById('inspector-name').textContent = sk.name;
+        document.getElementById('inspector-desc').textContent = sk.tooltip;
+        const stEl = document.getElementById('inspector-status');
+        if (state.collectedSkills[sk.id]) {
+          stEl.textContent = 'Collected (+100)';
+          stEl.className = 'text-mario-pipeDark';
+        } else {
+          stEl.textContent = 'Tap coin to collect';
+          stEl.className = 'text-mario-brick';
+        }
+      }
+
+      function collectSkill(skillId) {
+        Sound.coin();
+        if (!state.collectedSkills[skillId]) {
+          state.collectedSkills[skillId] = true;
+          state.bonusScore += 100;
+          updateHUD();
+        }
+        renderSkills();
+        sync3DBlocksAndCoins();
+      }
+
+      function renderExperience() {
+        const list = document.getElementById('experience-list');
+        list.innerHTML = LEVELS.map((lv) => `
+          <article class="relative md:pl-20">
+            <div class="hidden md:flex absolute left-2 top-6 w-14 h-14 rounded-2xl border-[3px] border-mario-ink shadow-toon-sm items-center justify-center font-pixel text-xs text-white z-10"
+              style="background:${lv.color};" aria-hidden="true">${lv.short}</div>
+            <div class="toon-panel p-6 sm:p-7 relative overflow-hidden ${lv.isCastle ? 'ring-4 ring-mario-red/40' : ''}">
+              <div class="absolute top-0 left-0 right-0 h-2.5 border-b-2 border-mario-ink" style="background:${lv.color};"></div>
+              <div class="flex flex-wrap items-start justify-between gap-3 pt-1 pb-4 border-b-2 border-dashed border-mario-ink/20">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2 mb-2">
+                    <span class="px-3 py-1 rounded-lg border-2 border-mario-ink font-pixel text-[10px] text-white" style="background:${lv.color};">${lv.code}</span>
+                    <span class="px-3 py-1 rounded-lg bg-slate-100 border-2 border-mario-ink/30 font-arcade text-xs font-bold text-slate-700">${lv.period}</span>
+                  </div>
+                  <h3 class="font-arcade text-xl sm:text-2xl font-bold text-mario-ink">
+                    ${lv.role} <span style="color:${lv.color};">· ${lv.company}</span>
+                  </h3>
+                </div>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#DCFCE7] border-2 border-mario-ink font-arcade text-xs font-bold text-[#14532D] shrink-0">
+                  <span>🚩</span>
+                  <span>${lv.isCastle ? 'ACTIVE STAGE' : 'STAGE CLEAR'}</span>
+                </div>
+              </div>
+              <ul class="mt-4 space-y-2.5 text-sm sm:text-base text-slate-800 font-semibold leading-relaxed">
+                ${lv.highlights.map((h) => `
+                  <li class="flex items-start gap-2.5">
+                    <span class="font-bold mt-0.5 shrink-0" style="color:${lv.color};">✔</span>
+                    <span>${h}</span>
+                  </li>
+                `).join('')}
+              </ul>
+              <div class="mt-5 pt-3 border-t-2 border-mario-ink/10 flex items-center justify-between text-xs font-arcade font-bold text-slate-500">
+                <span>${lv.isCastle ? 'FINAL CASTLE · CURRENT QUEST' : 'WARP PIPE TO NEXT LEVEL ↓'}</span>
+                <span class="text-mario-ink">🏁 GOAL POLE</span>
+              </div>
+            </div>
+          </article>
+        `).join('');
+      }
+
+      /* ==========================================================
+         5. PROCEDURAL 3D TOON MARIO WORLD (THREE.JS)
+         ========================================================== */
+      let scene, camera, renderer, raycaster, clock;
+      let akGroup, akBody, akLeftArm, akRightArm, akLeftLeg, akRightLeg, akShirtMeshes = [], akHalo;
+      let qBlockMeshes = {}, coinMeshes = {}, interactiveHits = [], cloudGroups = [], flagMesh = null, shroomGroup = null;
+      let qTexDefault, qTexUsed;
+      let animFrameId = null;
+
+      const charState = { x: 0, y: 0, vx: 0, vy: 0, facing: 1, jumping: false, walkPhase: 0, keyOffset: 0 };
+      const camState = { z: isMobile ? 10.5 : 8.2, targetZ: isMobile ? 10.5 : 8.2, y: 3.1, targetY: 3.1 };
+
+      function createToonGradient() {
+        const data = new Uint8Array([95, 175, 255]);
+        const tex = new THREE.DataTexture(data, 3, 1, THREE.LuminanceFormat);
+        tex.minFilter = THREE.NearestFilter;
+        tex.magFilter = THREE.NearestFilter;
+        tex.needsUpdate = true;
+        return tex;
+      }
+
+      function createSymbolTex(symbol, bg, fg, border = '#1A1C2C', circle = false) {
+        const size = 256;
+        const c = document.createElement('canvas');
+        c.width = size; c.height = size;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, size, size);
+        if (circle) {
+          ctx.beginPath();
+          ctx.arc(128, 128, 112, 0, Math.PI * 2);
+          ctx.fillStyle = bg; ctx.fill();
+          ctx.lineWidth = 14; ctx.strokeStyle = border; ctx.stroke();
+        } else {
+          ctx.strokeStyle = border; ctx.lineWidth = 14;
+          ctx.strokeRect(10, 10, 236, 236);
+          ctx.fillStyle = border;
+          [[32, 32], [224, 32], [32, 224], [224, 224]].forEach(([rx, ry]) => {
+            ctx.beginPath(); ctx.arc(rx, ry, 9, 0, Math.PI * 2); ctx.fill();
+          });
+        }
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const fs = symbol.length <= 1 ? 150 : symbol.length === 2 ? 112 : 84;
+        ctx.font = `900 ${fs}px "Arial Black", "Nunito", sans-serif`;
+        ctx.fillStyle = border; ctx.fillText(symbol, 134, 138);
+        ctx.fillStyle = fg; ctx.fillText(symbol, 128, 132);
+        const tex = new THREE.CanvasTexture(c);
+        tex.encoding = THREE.sRGBEncoding;
+        return tex;
+      }
+
+      function addOutline(mesh, threshold = 22) {
+        const edges = new THREE.EdgesGeometry(mesh.geometry, threshold);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x1A1C2C }));
+        mesh.add(line);
+      }
+
+      function init3DWorld() {
+        const container = document.getElementById('world-canvas');
+        if (!hasWebGL || !window.THREE) return;
+
+        clock = new THREE.Clock();
+        const grad = createToonGradient();
+        qTexDefault = createSymbolTex('?', '#FBD000', '#FFFFFF', '#1A1C2C', false);
+        qTexUsed = createSymbolTex('★', '#C84C0C', '#FBD000', '#1A1C2C', false);
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x5C94FC);
+        scene.fog = new THREE.Fog(0x5C94FC, 24, 66);
+
+        camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 130);
+        camera.position.set(1.2, camState.y, camState.z);
+
+        renderer = new THREE.WebGLRenderer({ antialias: !isMobile, powerPreference: 'high-performance' });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1.25 : 1.75));
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        container.innerHTML = '';
+        container.appendChild(renderer.domElement);
+
+        raycaster = new THREE.Raycaster();
+
+        // Bright Mario-style lights (rich toon saturation)
+        scene.add(new THREE.HemisphereLight(0xFFFFFF, 0x22C55E, 0.82));
+        const sun = new THREE.DirectionalLight(0xFFFDF5, 0.92);
+        sun.position.set(16, 26, 20);
+        scene.add(sun);
+
+        // Ground Track (Grass + Brick)
+        const trackLen = 120;
+        const grass = new THREE.Mesh(
+          new THREE.BoxGeometry(trackLen, 0.44, 5.4),
+          new THREE.MeshToonMaterial({ color: 0x00B800, gradientMap: grad })
+        );
+        grass.position.set(46, -0.22, 0);
+        addOutline(grass);
+        scene.add(grass);
+
+        const brick = new THREE.Mesh(
+          new THREE.BoxGeometry(trackLen, 2.8, 5.2),
+          new THREE.MeshToonMaterial({ color: 0xC84C0C, gradientMap: grad })
+        );
+        brick.position.set(46, -1.84, 0);
+        addOutline(brick);
+        scene.add(brick);
+
+        // Rolling Hills
+        const hillCount = isMobile ? 6 : 12;
+        for (let i = 0; i < hillCount; i++) {
+          const hill = new THREE.Mesh(
+            new THREE.CylinderGeometry(2.6 + (i % 3) * 0.7, 3.3 + (i % 3) * 0.8, 5.5 + (i % 2) * 2.5, 16),
+            new THREE.MeshToonMaterial({ color: i % 2 === 0 ? 0x16A34A : 0x22C55E, gradientMap: grad })
+          );
+          hill.position.set(i * 9 - 8, -0.4, -9 - (i % 2) * 3.5);
+          scene.add(hill);
+          const hillTop = new THREE.Mesh(
+            new THREE.SphereGeometry(2.6 + (i % 3) * 0.7, 16, 12),
+            new THREE.MeshToonMaterial({ color: i % 2 === 0 ? 0x16A34A : 0x22C55E, gradientMap: grad })
+          );
+          hillTop.position.set(hill.position.x, hill.position.y + (5.5 + (i % 2) * 2.5) / 2, hill.position.z);
+          scene.add(hillTop);
+        }
+
+        // Fluffy Clouds
+        const cloudCount = isMobile ? 7 : 15;
+        const cloudMat = new THREE.MeshToonMaterial({ color: 0xFFFFFF, gradientMap: grad });
+        for (let i = 0; i < cloudCount; i++) {
+          const cg = new THREE.Group();
+          const c1 = new THREE.Mesh(new THREE.SphereGeometry(0.95, 12, 12), cloudMat);
+          const c2 = new THREE.Mesh(new THREE.SphereGeometry(0.72, 12, 12), cloudMat);
+          c2.position.set(-0.85, -0.15, 0);
+          const c3 = new THREE.Mesh(new THREE.SphereGeometry(0.75, 12, 12), cloudMat);
+          c3.position.set(0.85, -0.15, 0);
+          cg.add(c1, c2, c3);
+          const baseY = 6.2 + (i % 3) * 1.4;
+          cg.position.set(i * 7.2 - 6, baseY, -7.5 - (i % 4) * 2.2);
+          cg.scale.setScalar(0.85 + (i % 3) * 0.22);
+          scene.add(cg);
+          cloudGroups.push({ group: cg, baseY, phase: i * 1.1 });
+        }
+
+        // Helper: Warp Pipe
+        function addPipe(x, z, h, targetSection, label) {
+          const g = new THREE.Group();
+          const shaft = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.72, 0.72, h, 18),
+            new THREE.MeshToonMaterial({ color: 0x00A800, gradientMap: grad })
+          );
+          shaft.position.y = h / 2; addOutline(shaft, 28);
+          const lip = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.88, 0.88, 0.42, 18),
+            new THREE.MeshToonMaterial({ color: 0x00C400, gradientMap: grad })
+          );
+          lip.position.y = h + 0.16; addOutline(lip, 28);
+          const hole = new THREE.Mesh(new THREE.CircleGeometry(0.66, 18), new THREE.MeshBasicMaterial({ color: 0x0A1F0A }));
+          hole.rotation.x = -Math.PI / 2; hole.position.y = h + 0.38;
+          g.add(shaft, lip, hole);
+          g.position.set(x, 0, z);
+          scene.add(g);
+          lip.userData = { type: 'pipe', target: targetSection, title: label, sub: 'Click to warp' };
+          interactiveHits.push(lip);
+        }
+
+        addPipe(-2.5, -0.6, 2.2, 'services', 'WARP → WORLD 1-1');
+        addPipe(26, -0.7, 2.0, 'skills', 'WARP → SKILLS');
+        addPipe(52, -0.7, 2.3, 'experience', 'WARP → LEVELS');
+        addPipe(58, -1.6, 1.5, 'experience', 'LEVEL 1-1');
+        addPipe(63, -1.6, 1.9, 'experience', 'LEVEL 1-2');
+        addPipe(68, -1.6, 2.3, 'experience', 'LEVEL 1-3');
+
+        // Build Original "AK" Character
+        akGroup = new THREE.Group();
+        akBody = new THREE.Group();
+        akGroup.add(akBody);
+
+        const redMat = new THREE.MeshToonMaterial({ color: 0xE52521, gradientMap: grad });
+        const blueMat = new THREE.MeshToonMaterial({ color: 0x2563EB, gradientMap: grad });
+        const bootMat = new THREE.MeshToonMaterial({ color: 0x6B3A1E, gradientMap: grad });
+        const skinMat = new THREE.MeshToonMaterial({ color: 0xFFCC99, gradientMap: grad });
+        const goldMat = new THREE.MeshToonMaterial({ color: 0xFBD000, gradientMap: grad });
+
+        akLeftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.56, 0.28), bootMat);
+        akLeftLeg.position.set(-0.21, 0.28, 0); addOutline(akLeftLeg);
+        akRightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.56, 0.28), bootMat);
+        akRightLeg.position.set(0.21, 0.28, 0); addOutline(akRightLeg);
+
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.72, 0.48), blueMat);
+        torso.position.set(0, 0.88, 0); addOutline(torso);
+        const chest = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.28, 0.5), redMat);
+        chest.position.set(0, 1.15, 0); addOutline(chest);
+        akShirtMeshes.push(chest);
+
+        const b1 = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), goldMat); b1.position.set(-0.18, 0.96, 0.26);
+        const b2 = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), goldMat); b2.position.set(0.18, 0.96, 0.26);
+
+        akLeftArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.52, 0.22), redMat);
+        akLeftArm.position.set(-0.52, 1.0, 0); addOutline(akLeftArm);
+        akRightArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.52, 0.22), redMat);
+        akRightArm.position.set(0.52, 1.0, 0); addOutline(akRightArm);
+        akShirtMeshes.push(akLeftArm, akRightArm);
+
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), skinMat);
+        head.position.set(0, 1.66, 0);
+        const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 8), new THREE.MeshBasicMaterial({ color: 0x1A1C2C }));
+        eyeL.position.set(-0.13, 1.69, 0.36);
+        const eyeR = eyeL.clone(); eyeR.position.x = 0.13;
+        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.085, 8, 8), new THREE.MeshToonMaterial({ color: 0xF7B787, gradientMap: grad }));
+        nose.position.set(0, 1.6, 0.42);
+
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.44, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.56), redMat);
+        cap.position.set(0, 1.92, -0.02);
+        const brim = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.08, 0.38), redMat);
+        brim.position.set(0, 1.92, 0.3); brim.rotation.x = 0.12; addOutline(brim);
+        akShirtMeshes.push(cap, brim);
+
+        const akBadge = new THREE.Mesh(
+          new THREE.CircleGeometry(0.15, 18),
+          new THREE.MeshBasicMaterial({ map: createSymbolTex('AK', '#FFFFFF', '#E52521', '#1A1C2C', true) })
+        );
+        akBadge.position.set(0, 2.08, 0.38); akBadge.rotation.x = -0.24;
+
+        akHalo = new THREE.Mesh(
+          new THREE.OctahedronGeometry(1.25, 0),
+          new THREE.MeshBasicMaterial({ color: 0xFBD000, wireframe: true, transparent: true, opacity: 0.85 })
+        );
+        akHalo.position.set(0, 1.15, 0);
+        akHalo.visible = false;
+
+        akBody.add(akLeftLeg, akRightLeg, torso, chest, b1, b2, akLeftArm, akRightArm, head, eyeL, eyeR, nose, cap, brim, akBadge, akHalo);
+        scene.add(akGroup);
+
+        // World 1-1: 3 Question Blocks + Power-Up Mushroom
+        SERVICES.forEach((svc, idx) => {
+          const qb = new THREE.Mesh(
+            new THREE.BoxGeometry(1.15, 1.15, 1.15),
+            new THREE.MeshToonMaterial({ map: qTexDefault, gradientMap: grad })
+          );
+          qb.position.set(15 + idx * 2.8, 3.2, -0.5);
+          addOutline(qb);
+          qb.userData = { type: 'service', id: svc.id, title: svc.title, sub: 'Click to hit ? Block (+100)', baseY: 3.2, bumpVel: 0, bumpY: 0 };
+          scene.add(qb);
+          qBlockMeshes[svc.id] = qb;
+          interactiveHits.push(qb);
+        });
+
+        // Original Power-Up Mushroom
+        shroomGroup = new THREE.Group();
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 0.5, 12), new THREE.MeshToonMaterial({ color: 0xFFF3D6, gradientMap: grad }));
+        stem.position.y = 0.25;
+        const mCap = new THREE.Mesh(new THREE.SphereGeometry(0.5, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.58), redMat);
+        mCap.position.y = 0.56;
+        shroomGroup.add(stem, mCap);
+        [[0, 0.92, 0.22], [0.3, 0.76, 0.18], [-0.3, 0.76, 0.18]].forEach(([sx, sy, sz]) => {
+          const sp = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), cloudMat);
+          sp.position.set(sx, sy, sz);
+          shroomGroup.add(sp);
+        });
+        shroomGroup.position.set(17.8, 3.9, -0.5);
+        scene.add(shroomGroup);
+
+        // World 1-2: 10 Collectible Tech Stack Coins
+        SKILLS.forEach((sk, idx) => {
+          const cg = new THREE.Group();
+          const disc = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.56, 0.56, 0.15, 18),
+            new THREE.MeshToonMaterial({ color: 0xFBD000, gradientMap: grad })
+          );
+          disc.rotation.x = Math.PI / 2;
+          addOutline(disc, 26);
+          const badgeMat = new THREE.MeshBasicMaterial({ map: createSymbolTex(sk.code, '#FBD000', '#1A1C2C', '#B45309', true) });
+          const f1 = new THREE.Mesh(new THREE.CircleGeometry(0.45, 18), badgeMat); f1.position.z = 0.085;
+          const f2 = new THREE.Mesh(new THREE.CircleGeometry(0.45, 18), badgeMat); f2.position.z = -0.085; f2.rotation.y = Math.PI;
+          cg.add(disc, f1, f2);
+          const baseY = idx % 2 === 0 ? 2.4 : 3.4;
+          cg.position.set(30 + idx * 1.9, baseY, -0.4);
+          scene.add(cg);
+
+          disc.userData = { type: 'skill', id: sk.id, title: sk.name, sub: sk.tooltip, group: cg, baseY };
+          coinMeshes[sk.id] = { group: cg, disc, baseY };
+          interactiveHits.push(disc);
+        });
+
+        // World 1-4: Goal Flagpole & Final Mini Castle
+        const castleGroup = new THREE.Group();
+        castleGroup.position.set(76, 0, -0.4);
+        const pBase = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.9, 1.1), new THREE.MeshToonMaterial({ color: 0xC84C0C, gradientMap: grad }));
+        pBase.position.y = 0.45; addOutline(pBase);
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 7.6, 12), new THREE.MeshToonMaterial({ color: 0xE2E8F0, gradientMap: grad }));
+        pole.position.y = 4.4;
+        const orb = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), goldMat);
+        orb.position.y = 8.3;
+        flagMesh = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.85, 0.08), redMat);
+        flagMesh.position.set(0.72, 7.35, 0); addOutline(flagMesh);
+
+        const fort = new THREE.Mesh(new THREE.BoxGeometry(4.4, 4.4, 3.6), new THREE.MeshToonMaterial({ color: 0xC84C0C, gradientMap: grad }));
+        fort.position.set(4.6, 2.2, -2.4); addOutline(fort);
+        const tower = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.8, 2.4), new THREE.MeshToonMaterial({ color: 0xD95B16, gradientMap: grad }));
+        tower.position.set(4.6, 5.2, -2.4); addOutline(tower);
+        const door = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2.3, 0.1), new THREE.MeshBasicMaterial({ color: 0x1A1C2C }));
+        door.position.set(4.6, 1.15, -0.58);
+
+        castleGroup.add(pBase, pole, orb, flagMesh, fort, tower, door);
+        scene.add(castleGroup);
+
+        window.addEventListener('resize', () => {
+          if (!renderer || !camera) return;
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate3D();
+      }
+
+      function sync3DBlocksAndCoins() {
+        Object.keys(qBlockMeshes).forEach((id) => {
+          const m = qBlockMeshes[id];
+          if (m && state.hitServices[id]) {
+            m.material.map = qTexUsed;
+            m.material.needsUpdate = true;
+            m.userData.bumpVel = 6.2;
+          }
+        });
+        Object.keys(coinMeshes).forEach((id) => {
+          const item = coinMeshes[id];
+          if (item && state.collectedSkills[id]) {
+            item.group.scale.setScalar(0.58);
+          }
+        });
+      }
+
+      function animate3D() {
+        if (state.classicMode || !renderer || !scene || !camera) return;
+        animFrameId = requestAnimationFrame(animate3D);
+
+        const dt = Math.min(clock.getDelta(), 0.05);
+        const elapsed = clock.getElapsedTime();
+
+        // Character movement (scroll + keyboard)
+        const speed = state.starPower ? 11 : 6.2;
+        if (state.keys.right) charState.keyOffset = Math.min(8, charState.keyOffset + speed * dt);
+        if (state.keys.left) charState.keyOffset = Math.max(-8, charState.keyOffset - speed * dt);
+        if (!state.keys.left && !state.keys.right) charState.keyOffset += (0 - charState.keyOffset) * Math.min(1, dt * 1.5);
+
+        const targetX = Math.max(-2, Math.min(80, state.scrollProgress * 78 + charState.keyOffset));
+        const dx = targetX - charState.x;
+        charState.vx = dx / Math.max(dt, 0.016);
+        if (Math.abs(dx) > 0.015) charState.facing = dx >= 0 ? 1 : -1;
+        charState.x += (targetX - charState.x) * Math.min(1, dt * (state.starPower ? 12 : 7.5));
+
+        if (charState.jumping) {
+          charState.y += charState.vy * dt;
+          charState.vy -= 26 * dt;
+          if (charState.y <= 0) {
+            charState.y = 0; charState.vy = 0; charState.jumping = false;
+          }
+        }
+
+        const moving = Math.abs(charState.vx) > 0.05;
+        if (moving && !charState.jumping) {
+          charState.walkPhase += dt * (state.starPower ? 20 : 12);
+        } else if (!charState.jumping) {
+          charState.walkPhase *= 0.85;
+        }
+        const swing = charState.jumping ? 0.72 : Math.sin(charState.walkPhase) * (moving ? 0.65 : 0.04);
+
+        akGroup.position.set(charState.x, charState.y, 0);
+        const targetRotY = charState.facing >= 0 ? Math.PI * 0.42 : -Math.PI * 0.42;
+        akGroup.rotation.y += (targetRotY - akGroup.rotation.y) * Math.min(1, dt * 10);
+        akLeftLeg.rotation.x = swing;
+        akRightLeg.rotation.x = -swing;
+        akLeftArm.rotation.x = charState.jumping ? -2.2 : -swing * 0.9;
+        akRightArm.rotation.x = charState.jumping ? -2.2 : swing * 0.9;
+        akBody.position.y = (charState.jumping ? 0 : Math.abs(Math.sin(charState.walkPhase)) * (moving ? 0.12 : 0)) + Math.sin(elapsed * 3) * 0.02;
+
+        akHalo.visible = state.starPower;
+        if (state.starPower) {
+          akHalo.rotation.y += dt * 4.5;
+          akHalo.rotation.z += dt * 2.5;
+          akShirtMeshes.forEach((m) => m.material.color.setHex(0xFBD000));
+        } else {
+          akShirtMeshes.forEach((m) => m.material.color.setHex(0xE52521));
+        }
+
+        // Camera follow & intro zoom-out (frames AK & pipe cleanly on right side on desktop)
+        const desktopXOffset = isMobile ? 0 : -2.6;
+        camState.z += (camState.targetZ - camState.z) * Math.min(1, dt * 3.5);
+        camState.y += (camState.targetY - camState.y) * Math.min(1, dt * 3.5);
+        camera.position.x += (charState.x + desktopXOffset + (state.gameStarted ? 1.2 : 0) - camera.position.x) * Math.min(1, dt * 5);
+        camera.position.y += (camState.y + charState.y * 0.25 - camera.position.y) * Math.min(1, dt * 5);
+        camera.position.z = camState.z;
+        camera.lookAt(charState.x + desktopXOffset + 0.6, 1.75, 0);
+
+        // Animate clouds, blocks, coins, mushroom, flag
+        cloudGroups.forEach((c) => { c.group.position.y = c.baseY + Math.sin(elapsed * 0.7 + c.phase) * 0.25; });
+        if (shroomGroup) {
+          shroomGroup.position.y = 3.9 + Math.abs(Math.sin(elapsed * 3)) * 0.22;
+          shroomGroup.rotation.y = elapsed * 1.1;
+        }
+        if (flagMesh) flagMesh.rotation.y = Math.sin(elapsed * 4) * 0.18;
+
+        Object.values(qBlockMeshes).forEach((qb) => {
+          if (qb.userData.bumpY > 0 || qb.userData.bumpVel > 0) {
+            qb.userData.bumpY += qb.userData.bumpVel * dt;
+            qb.userData.bumpVel -= 26 * dt;
+            if (qb.userData.bumpY <= 0) { qb.userData.bumpY = 0; qb.userData.bumpVel = 0; }
+          }
+          qb.position.y = qb.userData.baseY + qb.userData.bumpY + Math.sin(elapsed * 3 + qb.position.x) * 0.05;
+        });
+
+        Object.values(coinMeshes).forEach((item) => {
+          item.group.rotation.y += dt * 2.1;
+          item.group.position.y = item.baseY + Math.sin(elapsed * 2.8 + item.group.position.x) * 0.16;
+        });
+
+        renderer.render(scene, camera);
+      }
+
+      /* ==========================================================
+         6. MODE TOGGLES, WARP NAV, SCROLL & KONAMI EASTER EGG
+         ========================================================== */
+      function applyClassicMode(enabled) {
+        state.classicMode = enabled;
+        document.getElementById('world-canvas').classList.toggle('hidden', enabled);
+        document.getElementById('classic-backdrop').classList.toggle('hidden', !enabled);
+        const btn = document.getElementById('classic-toggle-btn');
+        document.getElementById('classic-toggle-label').textContent = enabled ? '3D Mode' : 'Classic 2D';
+        btn.classList.toggle('bg-mario-coin', enabled);
+        btn.classList.toggle('text-mario-ink', enabled);
+        btn.classList.toggle('bg-white/10', !enabled);
+        btn.classList.toggle('text-white', !enabled);
+
+        if (enabled) {
+          if (animFrameId) cancelAnimationFrame(animFrameId);
+          SERVICES.forEach((s) => { state.hitServices[s.id] = true; });
+          renderServices();
+        } else {
+          if (!renderer) init3DWorld();
+          else animate3D();
+        }
+      }
+
+      function warpTo(sectionId) {
+        const el = document.getElementById(sectionId);
+        if (!el) return;
+        document.getElementById('mobile-menu').classList.add('hidden');
+        document.getElementById('mobile-menu').classList.remove('flex');
+
+        if (prefersReducedMotion || state.classicMode) {
+          el.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+          return;
+        }
+        Sound.warp();
+        const ov = document.getElementById('warp-overlay');
+        document.getElementById('warp-label').textContent = WORLD_LABELS[sectionId] || sectionId.toUpperCase();
+        ov.classList.add('active');
+        setTimeout(() => el.scrollIntoView({ behavior: 'auto' }), 210);
+        setTimeout(() => ov.classList.remove('active'), 540);
+      }
+
+      function animateStats() {
+        document.querySelectorAll('.stat-num').forEach((el) => {
+          const target = parseInt(el.dataset.target, 10) || 0;
+          if (urlParams.get('instant') === '1') { el.textContent = target; return; }
+          const start = performance.now();
+          const step = (now) => {
+            const p = Math.min(1, (now - start) / 900);
+            el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target);
+            if (p < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        });
+      }
+
+      function bindEvents() {
+        // Scroll progress + active world tracker
+        const sectionIds = ['hero', 'services', 'skills', 'experience', 'contact'];
+        window.addEventListener('scroll', () => {
+          const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+          state.scrollProgress = Math.max(0, Math.min(1, window.scrollY / maxScroll));
+          state.scrollScore = Math.round(state.scrollProgress * 1500);
+          updateHUD();
+
+          let active = 'hero';
+          sectionIds.forEach((id) => {
+            const rect = document.getElementById(id).getBoundingClientRect();
+            if (rect.top <= window.innerHeight * 0.45) active = id;
+          });
+          document.getElementById('hud-world').textContent = WORLD_LABELS[active];
+        }, { passive: true });
+
+        // Warp buttons
+        document.querySelectorAll('[data-warp]').forEach((btn) => {
+          btn.addEventListener('click', () => warpTo(btn.dataset.warp));
+        });
+
+        // Press Start intro zoom-out
+        document.getElementById('press-start-btn').addEventListener('click', (e) => {
+          state.gameStarted = true;
+          state.bonusScore += 200;
+          updateHUD();
+          Sound.start();
+          camState.targetZ = isMobile ? 13.5 : 11.4;
+          camState.targetY = 4.2;
+          charState.vy = 9.0; charState.jumping = true;
+          e.currentTarget.textContent = '🎮 ENTER WORLD 1-1 →';
+          e.currentTarget.classList.remove('toon-btn-gold', 'anim-bounce');
+          e.currentTarget.classList.add('toon-btn-green');
+          e.currentTarget.onclick = () => warpTo('services');
+        });
+
+        // Unlock all services & collect all coins
+        document.getElementById('unlock-all-services').addEventListener('click', () => {
+          SERVICES.forEach((s) => {
+            if (!state.hitServices[s.id]) {
+              state.hitServices[s.id] = true;
+              state.bonusScore += 100;
+            }
+          });
+          Sound.block();
+          updateHUD();
+          renderServices();
+          sync3DBlocksAndCoins();
+        });
+
+        document.getElementById('collect-all-skills').addEventListener('click', () => {
+          SKILLS.forEach((sk) => {
+            if (!state.collectedSkills[sk.id]) {
+              state.collectedSkills[sk.id] = true;
+              state.bonusScore += 100;
+            }
+          });
+          Sound.star();
+          updateHUD();
+          renderSkills();
+          sync3DBlocksAndCoins();
+        });
+
+        // Sound toggle (default OFF)
+        document.getElementById('sound-toggle-btn').addEventListener('click', (e) => {
+          Sound.enabled = !Sound.enabled;
+          document.getElementById('sound-icon').textContent = Sound.enabled ? '🔊' : '🔇';
+          e.currentTarget.classList.toggle('bg-mario-pipe', Sound.enabled);
+          e.currentTarget.classList.toggle('bg-white/10', !Sound.enabled);
+          if (Sound.enabled) Sound.coin();
+        });
+
+        // Classic 2D mode toggle
+        document.getElementById('classic-toggle-btn').addEventListener('click', () => {
+          applyClassicMode(!state.classicMode);
+          Sound.jump();
+        });
+
+        // Mobile menu
+        document.getElementById('mobile-menu-btn').addEventListener('click', (e) => {
+          const m = document.getElementById('mobile-menu');
+          const hidden = m.classList.toggle('hidden');
+          m.classList.toggle('flex', !hidden);
+          e.currentTarget.setAttribute('aria-expanded', String(!hidden));
+        });
+
+        // Copy Email
+        document.getElementById('copy-email-btn').addEventListener('click', (e) => {
+          Sound.coin();
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText('Arifkurniawan98@outlook.com').then(() => {
+              e.currentTarget.textContent = 'Copied!';
+              setTimeout(() => { e.currentTarget.textContent = 'Copy'; }, 2000);
+            });
+          }
+        });
+
+        // 3D Canvas Raycast Hover & Click
+        const canvasWrap = document.getElementById('world-canvas');
+        const tip = document.getElementById('canvas-tooltip');
+        const mouse = new THREE.Vector2();
+
+        window.addEventListener('mousemove', (e) => {
+          if (state.classicMode || !raycaster || !camera) return;
+          mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+          raycaster.setFromCamera(mouse, camera);
+          const hits = raycaster.intersectObjects(interactiveHits, false);
+          if (hits.length > 0 && e.target.closest('#world-canvas')) {
+            const d = hits[0].object.userData;
+            document.getElementById('canvas-tooltip-title').textContent = d.title;
+            document.getElementById('canvas-tooltip-sub').textContent = d.sub;
+            tip.style.left = e.clientX + 'px';
+            tip.style.top = e.clientY + 'px';
+            tip.classList.add('show');
+            canvasWrap.style.cursor = 'pointer';
+          } else {
+            tip.classList.remove('show');
+            canvasWrap.style.cursor = 'default';
+          }
+        });
+
+        canvasWrap.addEventListener('click', (e) => {
+          if (state.classicMode || !raycaster || !camera) return;
+          mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+          raycaster.setFromCamera(mouse, camera);
+          const hits = raycaster.intersectObjects(interactiveHits, false);
+          if (hits.length > 0) {
+            const d = hits[0].object.userData;
+            if (d.type === 'service') triggerServiceHit(d.id);
+            else if (d.type === 'skill') collectSkill(d.id);
+            else if (d.type === 'pipe') warpTo(d.target);
+          }
+        });
+
+        // Keyboard controls + Konami Code Easter Egg
+        const konami = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        let kIdx = 0;
+        let starTimer = null;
+
+        window.addEventListener('keydown', (e) => {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+          if (!isMobile) {
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') state.keys.right = true;
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') state.keys.left = true;
+            if (e.code === 'Space' && state.gameStarted && !charState.jumping && document.activeElement === document.body) {
+              e.preventDefault();
+              charState.vy = state.starPower ? 12.2 : 9.8;
+              charState.jumping = true;
+              Sound.jump();
+            }
+          }
+
+          const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+          if (key === konami[kIdx]) {
+            kIdx += 1;
+            if (kIdx === konami.length) {
+              kIdx = 0;
+              state.starPower = true;
+              state.bonusScore += 1000;
+              updateHUD();
+              Sound.star();
+              document.getElementById('hud-bar').classList.add('star-power-hud');
+              document.getElementById('hud-star-pill').classList.remove('hidden');
+              const kb = document.getElementById('konami-banner');
+              kb.classList.remove('hidden'); kb.classList.add('flex');
+              clearTimeout(starTimer);
+              starTimer = setTimeout(() => {
+                state.starPower = false;
+                document.getElementById('hud-bar').classList.remove('star-power-hud');
+                document.getElementById('hud-star-pill').classList.add('hidden');
+                kb.classList.add('hidden'); kb.classList.remove('flex');
+              }, 10000);
+            }
+          } else {
+            kIdx = key === konami[0] ? 1 : 0;
+          }
+        });
+
+        window.addEventListener('keyup', (e) => {
+          if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') state.keys.right = false;
+          if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') state.keys.left = false;
+        });
+
+        // Loading screen
+        const loader = document.getElementById('loading-screen');
+        document.getElementById('skip-loader-btn').addEventListener('click', () => {
+          loader.classList.add('hidden-loader');
+          warpTo('experience');
+        });
+
+        if (urlParams.get('instant') === '1') {
+          loader.style.display = 'none';
+          loader.classList.add('hidden-loader');
+        } else {
+          let pct = 15;
+          const iv = setInterval(() => {
+            pct = Math.min(100, pct + Math.floor(Math.random() * 24 + 16));
+            document.getElementById('loader-bar').style.width = pct + '%';
+            document.getElementById('loader-pct').textContent = pct + '% READY';
+            if (pct >= 100) {
+              clearInterval(iv);
+              setTimeout(() => loader.classList.add('hidden-loader'), 260);
+            }
+          }, 150);
+        }
+      }
+
+      window.onload = function () {
+        renderServices();
+        renderSkills();
+        renderExperience();
+        animateStats();
+        bindEvents();
+        applyClassicMode(state.classicMode);
+        updateHUD();
+      };
+    })();
+  </script>
+</body>
+
+</html>

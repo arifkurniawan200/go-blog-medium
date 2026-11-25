@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  section {
+    scroll-margin-top: 136px;
+  }
+
+  body {
+    font-family: 'Nunito', 'Inter', system-ui, sans-serif;
+    background-color: #5C94FC;
+    color: #1A1C2C;
+    overflow-x: hidden;
+  }
+
+  /* High-visibility keyboard focus ring (WCAG AA+) */
+  :focus-visible {
+    outline: 3px solid #FBD000;
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+}
+
+@layer components {
+  .toon-panel {
+    @apply bg-white/95 border-[3px] border-mario-ink rounded-2xl shadow-toon backdrop-blur-sm;
+  }
+
+  .toon-btn {
+    @apply inline-flex items-center justify-center gap-2 min-h-[44px] min-w-[44px] px-5 py-2.5
+      font-arcade text-xs sm:text-sm font-bold tracking-wide
+      border-[3px] border-mario-ink rounded-xl shadow-toon-sm
+      transition-transform duration-150 select-none cursor-pointer
+      hover:-translate-y-0.5 active:translate-y-1 active:shadow-toon-press;
+  }
+
+  .toon-btn-red {
+    @apply toon-btn bg-mario-red text-white hover:bg-[#F33531];
+  }
+
+  .toon-btn-gold {
+    @apply toon-btn bg-mario-coin text-mario-ink hover:bg-[#FFE03D];
+  }
+
+  .toon-btn-green {
+    @apply toon-btn bg-mario-pipe text-white hover:bg-[#0EC20E];
+  }
+
+  .toon-btn-white {
+    @apply toon-btn bg-white text-mario-ink hover:bg-slate-50;
+  }
+
+  .pixel-text-shadow {
+    text-shadow: 3px 3px 0px #1A1C2C;
+  }
+
+  .pixel-text-shadow-sm {
+    text-shadow: 2px 2px 0px #1A1C2C;
+  }
+
+  /* Subtle brick mortar pattern */
+  .brick-pattern {
+    background-color: #C84C0C;
+    background-image:
+      linear-gradient(90deg, rgba(26, 28, 44, 0.28) 2px, transparent 2px),
+      linear-gradient(rgba(26, 28, 44, 0.28) 2px, transparent 2px);
+    background-size: 36px 20px;
+  }
+
+  /* Classic pipe vertical sheen */
+  .pipe-sheen {
+    background: linear-gradient(
+      90deg,
+      #007300 0%,
+      #00A800 18%,
+      #5BE84F 34%,
+      #00A800 58%,
+      #007300 100%
+    );
+  }
+}
+
+@keyframes rainbowGlow {
+  0% { box-shadow: 0 0 24px #E52521, inset 0 0 12px rgba(251, 208, 0, 0.45); }
+  25% { box-shadow: 0 0 28px #FBD000, inset 0 0 12px rgba(0, 168, 0, 0.45); }
+  50% { box-shadow: 0 0 28px #00A800, inset 0 0 12px rgba(92, 148, 252, 0.45); }
+  75% { box-shadow: 0 0 28px #5C94FC, inset 0 0 12px rgba(229, 37, 33, 0.45); }
+  100% { box-shadow: 0 0 24px #E52521, inset 0 0 12px rgba(251, 208, 0, 0.45); }
+}
+
+.star-power-active {
+  animation: rainbowGlow 0.9s linear infinite;
+}
+
+@keyframes coinPop {
+  0% { transform: translateY(0) scale(0.7); opacity: 1; }
+  50% { transform: translateY(-48px) scale(1.2); opacity: 1; }
+  100% { transform: translateY(-76px) scale(0.8); opacity: 0; }
+}
+
+.animate-coin-pop {
+  animation: coinPop 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes floatCloud {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float-cloud {
+  animation: floatCloud 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-float-cloud,
+  .star-power-active {
+    animation: none !important;
+  }
+}
