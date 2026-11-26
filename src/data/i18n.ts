@@ -251,57 +251,65 @@ const EXPERIENCE_EN: ExperienceLevel[] = [
     id: 'level-1-1',
     levelCode: 'Level 1-1',
     role: 'Junior Software Engineer',
-    company: 'KoinWorks',
+    company: 'PT Lunaria Annua Teknologi (KoinWorks)',
+    location: 'Jakarta',
     period: 'Jan 2022 – Jan 2023',
     badgeColor: '#00A800',
     highlights: [
-      'Developed and maintained investment products with high performance and reliability',
-      'Built experience in microservice architecture and inter-service communication',
-      'Integrated third-party platforms including CleverTap and SaaS core banking system',
-      'Collaborated with cross-functional teams to deliver high-quality technical solutions'
+      'Accelerated the development and iteration of multiple digital investment products, maintaining smooth user experiences and robust platform stability',
+      'Gained hands-on expertise in microservices architecture, designing lightweight, reliable inter-service communication protocols across distributed systems',
+      'Integrated complex third-party platforms, including CleverTap marketing automation and a SaaS cloud core banking system, expanding core platform capabilities',
+      'Maximized product uptime by proactively tracking application metrics, rapidly debugging production glitches, and resolving high-priority bugs',
+      'Collaborated actively within cross-functional Agile teams to design, estimate, and deliver high-quality software solutions in fast-paced sprint cycles'
     ]
   },
   {
     id: 'level-1-2',
     levelCode: 'Level 1-2',
     role: 'Software Engineer',
-    company: 'PrivyID',
-    period: 'Jan 2023 – Aug 2023',
+    company: 'PT Privy Identitas Digital (PrivyID)',
+    location: 'Yogyakarta',
+    period: 'Jan 2023 – May 2024',
     badgeColor: '#5C94FC',
     highlights: [
-      'Migrated legacy Ruby on Rails system to Golang, improving performance and scalability',
-      'Built secure backend features for banking clients (mortgage services)',
-      'Designed and implemented RBAC management system in Golang',
-      'Built asset management services streamlining operational efficiency'
+      'Contributed to the successful migration of a legacy Ruby on Rails system to Golang, achieving substantial benchmarks in application performance and horizontal scalability',
+      'Developed secure, high-availability backend features for client-facing mortgage-related services, ensuring a seamless digital signature experience for banking institution clients',
+      'Designed and executed a comprehensive Role-Based Access Control (RBAC) management system in Go, strengthening enterprise platform security with granular access controls',
+      'Built and optimized automated asset management services, streamlining internal asset tracking processes and operational efficiency for corporate clients'
     ]
   },
   {
     id: 'level-1-3',
     levelCode: 'Level 1-3',
-    role: 'Software Engineer',
-    company: 'KB Finansia Multi Finance',
-    period: 'Oct 2023 – May 2024',
+    role: 'Software Backend Engineer',
+    company: 'PT Indodax Nasional Indonesia',
+    location: 'Jakarta',
+    period: 'May 2024 – Oct 2025',
     badgeColor: '#C84C0C',
     highlights: [
-      'Eliminated SQL injection vulnerabilities and resolved critical technical debt',
-      'Implemented async workflows improving system performance and resource utilization',
-      'Led development of a critical business used-car platform ensuring high stability & scalability',
-      'Rewrote services using Clean Architecture, improving maintainability and code quality'
+      'Contributed to re-architecting legacy cryptocurrency exchange systems into a Kafka-based event-driven architecture, significantly increasing system throughput and real-time processing for critical trading features',
+      'Spearheaded the migration of core backend services from PHP to Golang, drastically reducing endpoint latency while improving system maintainability and scalability',
+      'Optimized database performance across high-traffic endpoints by implementing Google Spanner for strict data consistency and Redis for ultra-low-latency caching',
+      'Enhanced Kafka messaging reliability and stream processing pipelines, ensuring seamless data delivery for mission-critical operations with zero data loss',
+      'Integrated secure external REST APIs and Webhooks to automate complex business workflows and boost cross-platform operational efficiency'
     ]
   },
   {
     id: 'level-1-4',
     levelCode: 'Level 1-4 (Final/Castle)',
     isFinalCastle: true,
-    role: 'Software Backend Engineer',
-    company: 'Indodax',
-    period: 'May 2024 – Present',
+    role: 'Software Engineer',
+    company: 'PT GDC Multi Sarana',
+    location: 'Jakarta',
+    period: 'Oct 2025 – Present',
     badgeColor: '#E52521',
     highlights: [
-      'Re-architected legacy systems into Kafka-based event-driven architecture for critical exchange features',
-      'Built scalable backend services in Golang (migrating from PHP)',
-      'Implemented distributed databases (Google Spanner) and Redis for ultra-low-latency data access',
-      'Enhanced Kafka messaging reliability and integrated OpenTelemetry for centralized monitoring'
+      'Detailed high-level system designs in close collaboration with product and cross-functional engineering teams to accelerate the delivery of new financial products',
+      'Spearheaded the complete redesign and end-to-end rewrite of the core loan system, migrating legacy Python services into a high-performance, scalable Golang microservices architecture',
+      'Systematically resolved critical technical debt by refactoring core codebases, enhancing overall system maintainability, performance, and operational efficiency',
+      'Strengthened platform security and data compliance by implementing stringent controls to align with ISO standards and industry best practices',
+      'Partnered with cross-departmental stakeholders to align technical specifications with evolving product requirements, ensuring smooth deployment cycles',
+      'Engineered and maintained mission-critical financial transaction services—including fund disbursement, transaction status inquiry, and settlement—ensuring high data accuracy, idempotency, and reliable reconciliation'
     ]
   }
 ];
@@ -311,57 +319,65 @@ const EXPERIENCE_ID: ExperienceLevel[] = [
     id: 'level-1-1',
     levelCode: 'Level 1-1',
     role: 'Junior Software Engineer',
-    company: 'KoinWorks',
+    company: 'PT Lunaria Annua Teknologi (KoinWorks)',
+    location: 'Jakarta',
     period: 'Jan 2022 – Jan 2023',
     badgeColor: '#00A800',
     highlights: [
-      'Mengembangkan dan memelihara produk investasi dengan performa dan keandalan tinggi',
-      'Membangun fondasi arsitektur microservices serta komunikasi antar-layanan',
-      'Mengintegrasikan platform pihak ketiga termasuk CleverTap dan sistem core banking SaaS',
-      'Berkolaborasi dengan tim lintas fungsi untuk menghadirkan solusi teknis berkualitas tinggi'
+      'Mempercepat pengembangan dan iterasi berbagai produk investasi digital dengan menjaga pengalaman pengguna tetap mulus serta stabilitas platform yang kuat',
+      'Membangun keahlian langsung dalam arsitektur microservices, merancang protokol komunikasi antar-layanan yang ringan dan andal di sistem terdistribusi',
+      'Mengintegrasikan platform pihak ketiga yang kompleks, termasuk automasi pemasaran CleverTap dan sistem cloud core banking SaaS untuk memperluas kapabilitas inti platform',
+      'Memaksimalkan uptime produk dengan memantau metrik aplikasi secara proaktif, men-debug kendala produksi dengan cepat, dan menyelesaikan bug prioritas tinggi',
+      'Berkolaborasi aktif dalam tim Agile lintas fungsi untuk merancang, mengestimasi, dan menghadirkan solusi perangkat lunak berkualitas tinggi dalam siklus sprint yang cepat'
     ]
   },
   {
     id: 'level-1-2',
     levelCode: 'Level 1-2',
     role: 'Software Engineer',
-    company: 'PrivyID',
-    period: 'Jan 2023 – Agu 2023',
+    company: 'PT Privy Identitas Digital (PrivyID)',
+    location: 'Yogyakarta',
+    period: 'Jan 2023 – Mei 2024',
     badgeColor: '#5C94FC',
     highlights: [
-      'Memigrasikan sistem legacy Ruby on Rails ke Golang untuk meningkatkan performa dan skalabilitas',
-      'Membangun fitur backend aman untuk klien perbankan (layanan KPR / mortgage)',
-      'Merancang dan mengimplementasikan sistem manajemen RBAC menggunakan Golang',
-      'Membangun layanan manajemen aset guna meningkatkan efisiensi operasional'
+      'Berkontribusi pada keberhasilan migrasi sistem legacy Ruby on Rails ke Golang, menghasilkan peningkatan signifikan pada performa aplikasi dan skalabilitas horizontal',
+      'Mengembangkan fitur backend yang aman dan high-availability untuk layanan KPR (mortgage) klien, memastikan pengalaman tanda tangan digital yang mulus bagi institusi perbankan',
+      'Merancang dan membangun sistem manajemen Role-Based Access Control (RBAC) menyeluruh di Go guna memperkuat keamanan platform enterprise dengan kontrol akses granular',
+      'Membangun dan mengoptimalkan layanan manajemen aset otomatis untuk menyederhanakan pelacakan aset internal dan efisiensi operasional klien korporat'
     ]
   },
   {
     id: 'level-1-3',
     levelCode: 'Level 1-3',
-    role: 'Software Engineer',
-    company: 'KB Finansia Multi Finance',
-    period: 'Okt 2023 – Mei 2024',
+    role: 'Software Backend Engineer',
+    company: 'PT Indodax Nasional Indonesia',
+    location: 'Jakarta',
+    period: 'Mei 2024 – Okt 2025',
     badgeColor: '#C84C0C',
     highlights: [
-      'Menghilangkan celah kerentanan SQL injection dan menuntaskan technical debt kritis',
-      'Mengimplementasikan alur kerja asinkron untuk meningkatkan performa dan efisiensi resource',
-      'Memimpin pengembangan platform bisnis mobil bekas yang kritikal dengan stabilitas & skalabilitas tinggi',
-      'Menulis ulang layanan dengan Clean Architecture sehingga kode jauh lebih rapi dan mudah dipelihara'
+      'Berkontribusi dalam merancang ulang sistem bursa kripto legacy menjadi arsitektur event-driven berbasis Kafka, meningkatkan throughput sistem dan pemrosesan real-time secara signifikan untuk fitur trading kritikal',
+      'Memimpin migrasi layanan backend inti dari PHP ke Golang, memangkas latensi endpoint secara drastis sekaligus meningkatkan maintainability dan skalabilitas sistem',
+      'Mengoptimalkan performa database pada endpoint bertrafik tinggi dengan mengimplementasikan Google Spanner untuk konsistensi data ketat dan Redis untuk caching berlatensi ultra-rendah',
+      'Meningkatkan keandalan messaging Kafka dan pipeline stream processing demi menjamin pengiriman data mulus untuk operasional kritikal tanpa kehilangan data (zero data loss)',
+      'Mengintegrasikan REST API eksternal dan Webhook secara aman untuk mengotomatisasi alur bisnis kompleks dan meningkatkan efisiensi operasional lintas platform'
     ]
   },
   {
     id: 'level-1-4',
     levelCode: 'Level 1-4 (Final/Kastil)',
     isFinalCastle: true,
-    role: 'Software Backend Engineer',
-    company: 'Indodax',
-    period: 'Mei 2024 – Sekarang',
+    role: 'Software Engineer',
+    company: 'PT GDC Multi Sarana',
+    location: 'Jakarta',
+    period: 'Okt 2025 – Sekarang',
     badgeColor: '#E52521',
     highlights: [
-      'Merancang ulang sistem legacy menjadi arsitektur event-driven berbasis Kafka untuk fitur exchange kritikal',
-      'Membangun layanan backend skalabel dengan Golang (migrasi dari PHP)',
-      'Mengimplementasikan database terdistribusi (Google Spanner) dan Redis untuk akses data berlatensi ultra-rendah',
-      'Meningkatkan keandalan messaging Kafka serta mengintegrasikan OpenTelemetry untuk monitoring terpusat'
+      'Menyusun desain sistem tingkat tinggi secara rinci bersama tim produk dan engineering lintas fungsi untuk mempercepat peluncuran produk finansial baru',
+      'Memimpin perancangan ulang menyeluruh dan penulisan ulang end-to-end sistem pinjaman inti (core loan), memigrasikan layanan legacy Python ke arsitektur microservices Golang berperforma tinggi dan skalabel',
+      'Menyelesaikan technical debt kritis secara sistematis melalui refactoring codebase inti, meningkatkan maintainability, performa, dan efisiensi operasional sistem',
+      'Memperkuat keamanan platform dan kepatuhan data dengan menerapkan kontrol ketat yang selaras dengan standar ISO serta praktik terbaik industri',
+      'Bermitra dengan stakeholder lintas departemen untuk menyelaraskan spesifikasi teknis dengan kebutuhan produk yang dinamis demi siklus deployment yang mulus',
+      'Merancang dan memelihara layanan transaksi keuangan mission-critical—termasuk pencairan dana (disbursement), pengecekan status transaksi, dan settlement—dengan akurasi data tinggi, idempotency, dan rekonsiliasi yang andal'
     ]
   }
 ];
