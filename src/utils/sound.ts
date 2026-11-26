@@ -96,6 +96,28 @@ class GameSoundEngine {
       this.playTone(n, 0.09, 'square', 0.05, idx * 0.065);
     });
   }
+
+  /** Crisp 2-tone UI toggle chirp (e.g. language switch) */
+  playSwitch() {
+    this.playTone(660, 0.055, 'triangle', 0.07, 0);
+    this.playTone(990, 0.085, 'triangle', 0.07, 0.055);
+  }
+
+  /** Classic joyful 6-note 1-UP / celebration fanfare */
+  playOneUp() {
+    const notes = [329.63, 392.0, 659.25, 523.25, 587.33, 783.99];
+    notes.forEach((n, idx) => {
+      this.playTone(n, idx === notes.length - 1 ? 0.22 : 0.085, 'square', 0.05, idx * 0.075);
+    });
+  }
+
+  /** Rising celebratory chime when waving a level's Goal Pole flag */
+  playFlagpole() {
+    const notes = [392.0, 523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((n, idx) => {
+      this.playTone(n, idx === notes.length - 1 ? 0.24 : 0.07, 'triangle', 0.08, idx * 0.06);
+    });
+  }
 }
 
 export const soundFX = new GameSoundEngine();

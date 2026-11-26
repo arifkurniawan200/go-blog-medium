@@ -47,13 +47,17 @@ export function AKCharacter({ positionRef, starPower }: AKCharacterProps) {
 
     if (rootRef.current) {
       rootRef.current.position.set(p.x, p.y, 0);
-      // Smoothly face direction of travel
-      const targetRotY = p.facing >= 0 ? Math.PI * 0.42 : -Math.PI * 0.42;
-      rootRef.current.rotation.y = THREE.MathUtils.lerp(
-        rootRef.current.rotation.y,
-        targetRotY,
-        dt * 10
-      );
+      // Smoothly face direction of travel (with joyful spin during star-power jumps)
+      if (p.jumping && starPower) {
+        rootRef.current.rotation.y += dt * 11;
+      } else {
+        const targetRotY = p.facing >= 0 ? Math.PI * 0.42 : -Math.PI * 0.42;
+        rootRef.current.rotation.y = THREE.MathUtils.lerp(
+          rootRef.current.rotation.y,
+          targetRotY,
+          dt * 10
+        );
+      }
     }
 
     const speed = Math.abs(p.vx);
@@ -75,15 +79,15 @@ export function AKCharacter({ positionRef, starPower }: AKCharacterProps) {
       rightLegRef.current.rotation.x = -swing;
     }
     if (leftArmRef.current && rightArmRef.current) {
-      leftArmRef.current.rotation.x = p.jumping ? -2.3 : -swing * 0.9;
-      rightArmRef.current.rotation.x = p.jumping ? -2.3 : swing * 0.9;
+      leftArmRef.current.rotation.x = p.jumping ? -2.35 : -swing * 0.9;
+      rightArmRef.current.rotation.x = p.jumping ? -2.35 : swing * 0.9;
     }
 
     if (bodyRef.current) {
-      bodyRef.current.position.y = bounce + Math.sin(state.clock.elapsedTime * 3) * 0.025;
+      bodyRef.current.position.y = bounce + Math.sin(state.clock.elapsedTime * 3.4) * 0.035;
       // Squash & stretch when jumping
-      const stretchY = p.jumping ? 1.12 : 1.0;
-      const squashXZ = p.jumping ? 0.92 : 1.0;
+      const stretchY = p.jumping ? 1.14 : 1.0;
+      const squashXZ = p.jumping ? 0.91 : 1.0;
       bodyRef.current.scale.set(
         THREE.MathUtils.lerp(bodyRef.current.scale.x, squashXZ, dt * 12),
         THREE.MathUtils.lerp(bodyRef.current.scale.y, stretchY, dt * 12),

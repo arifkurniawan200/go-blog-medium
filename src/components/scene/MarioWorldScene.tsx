@@ -15,11 +15,21 @@ import {
 } from './WorldProps';
 import { SERVICES, SKILLS } from '../../data/portfolio';
 
+export interface SceneLabels {
+  warpStart: string;
+  warpSkills: string;
+  warpLevels: string;
+  coinCollected: string;
+  coinClickToCollect: string;
+}
+
 export interface MarioWorldSceneProps {
   scrollProgressRef: MutableRefObject<number>;
   gameStarted: boolean;
   isMobile: boolean;
   starPower: boolean;
+  jumpTrigger: number;
+  sceneLabels: SceneLabels;
   hitServices: Record<string, boolean>;
   collectedSkills: Record<string, boolean>;
   onHitServiceBlock: (serviceId: string) => void;
@@ -35,6 +45,8 @@ function InnerMarioWorld({
   gameStarted,
   isMobile,
   starPower,
+  jumpTrigger,
+  sceneLabels,
   hitServices,
   collectedSkills,
   onHitServiceBlock,
@@ -54,9 +66,31 @@ function InnerMarioWorld({
   });
 
   const keysRef = useRef({ left: false, right: false });
+  const pointerParallaxRef = useRef({ x: 0, y: 0 });
   const keyboardOffsetRef = useRef(0);
   const introOffsetRef = useRef({ camZ: 6.2, camY: 2.8, charY: -1.4 });
   const prevTargetX = useRef(0);
+
+  // External UI Jump trigger (from Floating Jump button, ? blocks, coin taps, etc.)
+  useEffect(() => {
+    if (jumpTrigger > 0) {
+      characterRef.current.vy = starPower ? 12.2 : 9.6;
+      characterRef.current.jumping = true;
+    }
+  }, [jumpTrigger, starPower]);
+
+  // Subtle mouse parallax on desktop for extra 3D depth
+  useEffect(() => {
+    if (isMobile) return;
+    const handlePointerMove = (e: PointerEvent) => {
+      const nx = (e.clientX / window.innerWidth - 0.5) * 2;
+      const ny = (e.clientY / window.innerHeight - 0.5) * 2;
+      pointerParallaxRef.current.x = nx * 0.75;
+      pointerParallaxRef.current.y = -ny * 0.35;
+    };
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    return () => window.removeEventListener('pointermove', handlePointerMove);
+  }, [isMobile]);
 
   // Trigger dramatic zoom-out from warp pipe when user clicks "PRESS START"
   useEffect(() => {
@@ -88,7 +122,6 @@ function InnerMarioWorld({
         keysRef.current.left = true;
       }
       if (e.code === 'Space' && !characterRef.current.jumping) {
-        // Prevent page jump only when user actively presses Space after starting
         if (gameStarted && document.activeElement === document.body) {
           e.preventDefault();
           characterRef.current.vy = starPower ? 12.2 : 9.8;
@@ -187,10 +220,14 @@ function InnerMarioWorld({
       c.y = introOffsetRef.current.charY;
     }
 
-    // Smooth Mario 3D World elevated camera follow (frames AK & pipe cleanly on right on desktop)
+    // Smooth Mario 3D World elevated camera follow + gentle pointer parallax
     const desktopXOffset = isMobile ? 0 : -2.6;
-    const camTargetX = c.x + desktopXOffset + (gameStarted ? 1.2 : 0);
-    const camTargetY = introOffsetRef.current.camY + c.y * 0.25 + Math.sin(state.clock.elapsedTime * 0.6) * 0.1;
+    const camTargetX = c.x + desktopXOffset + (gameStarted ? 1.2 : 0) + pointerParallaxRef.current.x;
+    const camTargetY =
+      introOffsetRef.current.camY +
+      c.y * 0.25 +
+      Math.sin(state.clock.elapsedTime * 0.6) * 0.1 +
+      pointerParallaxRef.current.y;
     const camTargetZ = introOffsetRef.current.camZ;
 
     camera.position.x = THREE.MathUtils.lerp(camera.position.x, camTargetX, dt * 5);
@@ -235,7 +272,7 @@ function InnerMarioWorld({
       <WarpPipe
         position={[-2.6, 0, -0.6]}
         height={2.2}
-        label="WORLD 1-1 START"
+        label={sceneLabels.warpStart}
         onClick={() => onJumpToSection('services')}
       />
 
@@ -259,7 +296,7 @@ function InnerMarioWorld({
       <WarpPipe
         position={[26, 0, -0.7]}
         height={2.0}
-        label="WARP → SKILLS"
+        label={sceneLabels.warpSkills}
         onClick={() => onJumpToSection('skills')}
       />
 
@@ -272,6 +309,8 @@ function InnerMarioWorld({
             position={[idx * 1.9, idx % 2 === 0 ? 2.4 : 3.4, 0]}
             collected={Boolean(collectedSkills[skill.id])}
             onCollect={onCollectSkill}
+            collectedLabel={sceneLabels.coinCollected}
+            clickToCollectLabel={sceneLabels.coinClickToCollect}
           />
         ))}
       </group>
@@ -280,7 +319,7 @@ function InnerMarioWorld({
       <WarpPipe
         position={[52, 0, -0.7]}
         height={2.3}
-        label="WARP → LEVELS"
+        label={sceneLabels.warpLevels}
         onClick={() => onJumpToSection('experience')}
       />
 
