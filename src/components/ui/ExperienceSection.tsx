@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { motion, useScroll, useSpring } from 'framer-motion';
-import { Flag, Castle, CheckCircle2 } from 'lucide-react';
+import { Flag, Castle, CheckCircle2, MapPin } from 'lucide-react';
 import type { LocalizedPortfolioContent } from '../../data/i18n';
 
 interface ExperienceSectionProps {
@@ -128,6 +128,12 @@ export function ExperienceSection({ content, onWaveFlag }: ExperienceSectionProp
                         <span className="px-3 py-1 rounded-lg bg-slate-100 border-2 border-mario-ink/30 font-arcade text-xs font-bold text-slate-700">
                           {level.period}
                         </span>
+                        {level.location && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-mario-sky/15 border-2 border-mario-ink/25 font-arcade text-xs font-bold text-mario-ink">
+                            <MapPin className="w-3.5 h-3.5 text-mario-red shrink-0" aria-hidden="true" />
+                            {level.location}
+                          </span>
+                        )}
                       </div>
 
                       <h3 className="font-arcade text-xl sm:text-2xl font-bold text-mario-ink">
