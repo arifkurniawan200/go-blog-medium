@@ -132,13 +132,17 @@ interface CollectibleCoin3DProps {
   position: [number, number, number];
   collected: boolean;
   onCollect: (skillId: string) => void;
+  collectedLabel?: string;
+  clickToCollectLabel?: string;
 }
 
 export function CollectibleCoin3D({
   skill,
   position,
   collected,
-  onCollect
+  onCollect,
+  collectedLabel = 'Collected!',
+  clickToCollectLabel = 'Click to collect (+100)'
 }: CollectibleCoin3DProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
@@ -191,7 +195,7 @@ export function CollectibleCoin3D({
           <div className="px-3 py-1.5 bg-mario-ink text-white rounded-xl border-2 border-mario-coin shadow-toon-sm text-center whitespace-nowrap pointer-events-none">
             <div className="font-arcade text-[11px] text-mario-coin">{skill.name}</div>
             <div className="text-[10px] text-slate-200 font-sans">
-              {collected ? 'Collected!' : 'Click to collect (+100)'}
+              {collected ? collectedLabel : clickToCollectLabel}
             </div>
           </div>
         </Html>
